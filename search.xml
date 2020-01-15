@@ -20,7 +20,7 @@
 <p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
 ]]></content>
       <categories>
-        <category>分类</category>
+        <category>/test/</category>
       </categories>
   </entry>
   <entry>
@@ -30,5 +30,8 @@
 <p>我有一头<strong>小毛驴</strong>，可是我从来都不骑。</p>
 </blockquote>
 ]]></content>
+      <categories>
+        <category>/blog/</category>
+      </categories>
   </entry>
 </search>
