@@ -20,7 +20,7 @@
 <p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
 ]]></content>
       <categories>
-        <category>/test/</category>
+        <category>test</category>
       </categories>
   </entry>
   <entry>
@@ -31,7 +31,7 @@
 </blockquote>
 ]]></content>
       <categories>
-        <category>/blog/</category>
+        <category>blog</category>
       </categories>
   </entry>
 </search>
