@@ -27,20 +27,6 @@
       </tags>
   </entry>
   <entry>
-    <title>我的第二篇博客</title>
-    <url>/2020/01/14/swift/</url>
-    <content><![CDATA[<blockquote>
-<p>我有一头<strong>小毛驴</strong>，可</p>
-</blockquote>
-]]></content>
-      <categories>
-        <category>Swift</category>
-      </categories>
-      <tags>
-        <tag>Swift</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Objective-C文章</title>
     <url>/2020/01/14/objectiveC/</url>
     <content><![CDATA[<blockquote>
@@ -52,6 +38,20 @@
       </categories>
       <tags>
         <tag>Objective-C</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>我的第二篇博客</title>
+    <url>/2020/01/14/swift/</url>
+    <content><![CDATA[<blockquote>
+<p>我有一头<strong>小毛驴</strong>，可</p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>Swift</category>
+      </categories>
+      <tags>
+        <tag>Swift</tag>
       </tags>
   </entry>
   <entry>
