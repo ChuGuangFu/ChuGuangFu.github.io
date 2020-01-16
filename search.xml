@@ -27,6 +27,26 @@
       </tags>
   </entry>
   <entry>
+    <title>Swift开篇之述</title>
+    <url>/2020/01/14/swift/</url>
+    <content><![CDATA[<p>Swift篇主要包含以下tag分类，每篇博客必须至少包含以下分类中的一个</p>
+<ul>
+<li>学习知识点</li>
+<li>开发问题记录</li>
+<li>博客记录</li>
+</ul>
+<p>###学习知识点<br>swift5已经推出各种语法已经接近成熟，三方库也越来越齐全虽然之前swift2、swift3期间写过代码，但是感觉变化还是挺大的，所以准备在项目中与oc开启新一轮的混编，可能是年纪越来越大了看过的东西越来越容易忘记，所以在这记录一下</p>
+<p>###开发问题记录<br>。。。。。。</p>
+<p>###博客记录<br>。。。。。。</p>
+]]></content>
+      <categories>
+        <category>Swift</category>
+      </categories>
+      <tags>
+        <tag>Swift</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Objective-C文章</title>
     <url>/2020/01/14/objectiveC/</url>
     <content><![CDATA[<blockquote>
@@ -38,20 +58,6 @@
       </categories>
       <tags>
         <tag>Objective-C</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>我的第二篇博客</title>
-    <url>/2020/01/14/swift/</url>
-    <content><![CDATA[<blockquote>
-<p>我有一头<strong>小毛驴</strong>，可</p>
-</blockquote>
-]]></content>
-      <categories>
-        <category>Swift</category>
-      </categories>
-      <tags>
-        <tag>Swift</tag>
       </tags>
   </entry>
   <entry>
