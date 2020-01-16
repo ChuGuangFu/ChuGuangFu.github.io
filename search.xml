@@ -29,6 +29,19 @@
       </tags>
   </entry>
   <entry>
+    <title>我的第二篇博客</title>
+    <url>/2020/01/14/swift/</url>
+    <content><![CDATA[<blockquote>
+<p>我有一头<strong>小毛驴</strong>，可</p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>swift</category>
+        <category>categories</category>
+        <category>swift</category>
+      </categories>
+  </entry>
+  <entry>
     <title>我的第一篇博客</title>
     <url>/2020/01/14/%E6%B5%8B%E8%AF%95%E5%8F%91%E5%8D%9A%E5%AE%A2/</url>
     <content><![CDATA[<blockquote>
