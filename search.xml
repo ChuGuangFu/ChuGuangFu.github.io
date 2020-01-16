@@ -20,10 +20,10 @@
 <p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
 ]]></content>
       <categories>
-        <category>otherSet</category>
+        <category>其它总结</category>
       </categories>
       <tags>
-        <tag>其它总结第一篇</tag>
+        <tag>其它总结</tag>
       </tags>
   </entry>
   <entry>
@@ -48,7 +48,7 @@
 </blockquote>
 ]]></content>
       <categories>
-        <category>swift</category>
+        <category>Swift</category>
       </categories>
       <tags>
         <tag>Swift</tag>
@@ -62,7 +62,7 @@
 </blockquote>
 ]]></content>
       <categories>
-        <category>dailySet</category>
+        <category>每日总结</category>
       </categories>
       <tags>
         <tag>每日总结</tag>
