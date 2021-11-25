@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://yoursite.com/"/>
-  <updated>2021-11-25T06:43:19.010Z</updated>
+  <updated>2021-11-25T08:19:44.506Z</updated>
   <id>http://yoursite.com/</id>
   
   <author>
@@ -15,6 +15,433 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>swift异常处理</title>
+    <link href="http://yoursite.com/2021/11/25/swift%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/"/>
+    <id>http://yoursite.com/2021/11/25/swift%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/</id>
+    <published>2021-11-25T08:18:31.987Z</published>
+    <updated>2021-11-25T08:19:44.506Z</updated>
+    
+    <content type="html"><![CDATA[<p><code>swift</code>像其他编程语言一样可以抛出异常并处理异常，本文就详细说一下在<code>swift</code>中抛出并处理异常，<code>swift</code><br>中的一些简单异常可以用<code>enum</code>定义，注意这个枚举要继承一个空协议<code>Error</code>，比如下面的代码：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">enum FileReadError : Error &#123;</span><br><span class="line">  case FileIsNull</span><br><span class="line">  case FileNotFound</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>这里定义了一个异常值的枚举，接下来我们写个函数使用这些异常值，能抛出异常的函数一定要在函数后面添加关键字<code>throws</code>，这种函数一般称为throwing函数，如果这个函数有返回值，那么<code>throws</code>要写在返回值的前面，看下面的例子：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">func readFileContent(_ filePath: String) throws -&gt; String &#123;</span><br><span class="line">  &#x2F;&#x2F;1.filePath为空</span><br><span class="line">  if filePath &#x3D;&#x3D; &quot;&quot; &#123;</span><br><span class="line">    throw FileReadError.FileIsNull</span><br><span class="line">  &#125;</span><br><span class="line">  &#x2F;&#x2F;2.filePath有值，但是没有对应的路径</span><br><span class="line">  if filePath !&#x3D; &quot;&#x2F;User&#x2F;Desktop&#x2F;haha&quot; &#123;</span><br><span class="line">    throw FileReadError.FileNotFound</span><br><span class="line">  &#125;</span><br><span class="line">  &#x2F;&#x2F;3.取出其中内容</span><br><span class="line">  return &quot;haha&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>在<code>swift</code>中有4中方法来处理错误：</p><ul><li>把错误传递给调用这个方法的代码</li><li>使用<code>do-catch</code>语句来处理这个错误</li><li>把错误处理为一个可选值</li><li>断言这个错误不会出现</li></ul><p>下面将逐一演示</p><h5 id="1-使用抛出方法来传递错误"><a href="#1-使用抛出方法来传递错误" class="headerlink" title="1.使用抛出方法来传递错误"></a>1.使用抛出方法来传递错误</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;抛出错误</span><br><span class="line">func throwError(_ filePath: String) throws -&gt; String &#123;</span><br><span class="line">  print(&quot;错误传递&quot;)</span><br><span class="line">  try readFileContent(filePath)</span><br><span class="line">  print(&quot;未传递错误&quot;)</span><br><span class="line">  return &quot;无错误&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>throwError这个函数并没有处理函数<code>readFileContent</code>返回的错误，而是将错误传递给了调用<code>throwError</code>函数的地方处理了</p><h5 id="2-使用do-catch来捕获异常并处理"><a href="#2-使用do-catch来捕获异常并处理" class="headerlink" title="2.使用do-catch来捕获异常并处理"></a>2.使用<code>do-catch</code>来捕获异常并处理</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">func catchError(_ filePath: String) &#123;</span><br><span class="line">  do &#123;</span><br><span class="line">    print(&quot;捕获错误&quot;)</span><br><span class="line">    let result &#x3D; try readFileContent(filePath)</span><br><span class="line">    print(&quot;未捕获到错误\(result)&quot;)</span><br><span class="line">  &#125; catch FileReadError.FileIsNull &#123;</span><br><span class="line">    print(&quot;filePath为空&quot;)</span><br><span class="line">  &#125; catch FileReadError.FileNotFound &#123;</span><br><span class="line">    print(&quot;filePath有值，但是没有对应的路径&quot;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>使用<code>do-catch</code>捕获异常处理，在<code>do</code>的闭包里执行会抛出异常的代码，在<code>catch</code>分支里匹配异常处理异常</p><h5 id="3-把错误处理成可选值"><a href="#3-把错误处理成可选值" class="headerlink" title="3.把错误处理成可选值"></a>3.把错误处理成可选值</h5><p>代码示例如下</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">func buhuoError(_ filePath: String) &#123;</span><br><span class="line">  if let result &#x3D; try? readFileContent(filePath) &#123;</span><br><span class="line">    print(&quot;可选值非空&quot;+result)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>使用<code>try?</code>将异常转换为可选值，在使用<code>try?</code>的过程中，如果有异常抛出，那么这个语句的值为<code>nil</code></p><h5 id="4-禁用错误传递"><a href="#4-禁用错误传递" class="headerlink" title="4.禁用错误传递"></a>4.禁用错误传递</h5><p>有时候我们知道一个能抛出错误的方法在运行时间上不会抛出错误，在这种情况下，我们可以使用语句<code>try!</code>来禁止错误传递，并且封装在断言内，如果真的有错误抛出，那么程序会崩溃。<br>实例代码如下：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">func noError(_ filePath: String) &#123;</span><br><span class="line">  &#x2F;&#x2F;如果方法&#96;readFileContent&#96;抛出异常，则程序会崩溃</span><br><span class="line">  let result &#x3D; try! readFileContent(filePath)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h4 id="defer语句"><a href="#defer语句" class="headerlink" title="defer语句"></a>defer语句</h4><p>使用<code>defer</code>语句在代码执行离开当前代码块之前执行一些语句。不管代码执行如何离开当前代码块，不管是因为报错、<code>return</code>或者<code>break</code>，<code>defer</code>中的语句都能让我们做一些必要的清理。例如，可以使用<code>defer</code>语句来保证文件描述符被关闭和手动分配的内存被释放。</p><p>参考：<a href="http://www.jianshu.com/p/cb2e22bfa3eb" target="_blank" rel="noopener">【Swift 3.1】18 - 错误处理 (Error Handling)</a></p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;&lt;code&gt;swift&lt;/code&gt;像其他编程语言一样可以抛出异常并处理异常，本文就详细说一下在&lt;code&gt;swift&lt;/code&gt;中抛出并处理异常，&lt;code&gt;swift&lt;/code&gt;&lt;br&gt;中的一些简单异常可以用&lt;code&gt;enum&lt;/code&gt;定义，注意这个枚举要继承
+      
+    
+    </summary>
+    
+    
+      <category term="Swift" scheme="http://yoursite.com/categories/Swift/"/>
+    
+    
+      <category term="Swift" scheme="http://yoursite.com/tags/Swift/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>可选类型</title>
+    <link href="http://yoursite.com/2021/11/25/%E5%8F%AF%E9%80%89%E7%B1%BB%E5%9E%8B/"/>
+    <id>http://yoursite.com/2021/11/25/%E5%8F%AF%E9%80%89%E7%B1%BB%E5%9E%8B/</id>
+    <published>2021-11-25T08:17:24.180Z</published>
+    <updated>2021-11-25T08:18:07.529Z</updated>
+    
+    <content type="html"><![CDATA[<h4 id="Optionals"><a href="#Optionals" class="headerlink" title="Optionals"></a>Optionals</h4><p>当一个值可能为空时，就是用可选类型。一个可选类型代表着两种类型：1）有一个特定的值，并且可以把这个可选值解包得到它真正的值。2）没有值，也就是nil<br>下面举个例子，把<code>String</code>转化为<code>Int</code>:</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">let possibleNumber &#x3D; &quot;123&quot;</span><br><span class="line">let convertedNumber &#x3D; Int(possibleNumber)</span><br><span class="line">convertedNumber被推断为Int？类型，或者说是 optional Int</span><br></pre></td></tr></table></figure><h4 id="nil"><a href="#nil" class="headerlink" title="nil"></a>nil</h4><p>我们可以把一个<code>nil</code>赋值给可选类型<br><strong>注意</strong>：<code>nil</code>不能赋值给非可选类型的常量和变量。所以如果在代码中，如果变量有可能为<code>nil</code>，尽量声明为可选类型<br>如果在声明可选变量的时候没有指定默认值，那么这个变量默认为<code>nil</code><br><strong>注意</strong>：swift的<code>nil</code>和oc的<code>nil</code>是不同的。oc的<code>nil</code>是一个空指针，指向一个不存在的对象。swift中的<code>nil</code>不是指针，只是表示一个特定类型的值是空的，任何可选类型的值都可以是空的，不仅仅是对象类型<br>####if语句和强制解包<br>使用<code>==</code>或者<code>!=</code>来判断一个可选类型的值是否等于<code>nil</code></p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">if convertedNumber !&#x3D; nil &#123;</span><br><span class="line">  print(&quot;convertedNumber contains some Int value&quot;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>当我们确定可选类型确实包含了一个值，可以使用<code>！</code>来解包这个可选类型变量<br><strong>注意</strong>：在使用<code>！</code>解包时，一定要保证可选变量有值，不能为<code>nil</code>，否则在运行的时候在报错。</p><h4 id="可选绑定"><a href="#可选绑定" class="headerlink" title="可选绑定"></a>可选绑定</h4><p>使用可选绑定来确认一个可选类型是否有值，如果有值那么就赋值给一个局部的变量或常量</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">if let contantName &#x3D; someOptional &#123;</span><br><span class="line">  &#x2F;&#x2F;do something ....</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>我们可以使用可选绑定重写之前的例子：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;之前的例子</span><br><span class="line">if convertedNumber !&#x3D; nil &#123;</span><br><span class="line">  print(&quot;......&quot;)</span><br><span class="line">&#125;</span><br><span class="line">&#x2F;&#x2F;使用可选绑定重写</span><br><span class="line">if let actualNumber &#x3D; Int(possibleNumber) &#123;</span><br><span class="line">  print(.......)</span><br><span class="line">&#125; else &#123;</span><br><span class="line">  &#x2F;&#x2F;没有值</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h4 id="隐式解包可选类型"><a href="#隐式解包可选类型" class="headerlink" title="隐式解包可选类型"></a>隐式解包可选类型</h4><p>有时候我们能确定一个可选类型被第一次赋值后总会有值那我们就可以把这种可选类型声明为隐式解包可选类型。要在设置的可选类型后面加<code>!</code>，例如：<code>String!</code>。<br>其实隐式解包可选类型也是一个正常的可选类型，但是可以像非可选类型一样使用，访问他的值时不用解包。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">let possibleString : String? &#x3D; &quot;这是一个可选类型的字符转&quot;</span><br><span class="line">let finalString : String &#x3D; possibleString!  &#x2F;&#x2F;需要感叹号解包</span><br><span class="line"></span><br><span class="line">let assumedString : String! &#x3D; &quot;这是一个隐式解包可选类型的字符串&quot;</span><br><span class="line">let implicitString : String &#x3D; assumedString  &#x2F;&#x2F;无需感叹号解包</span><br></pre></td></tr></table></figure><p><strong>注意：</strong>如果一个隐式解包可选类型是<code>nil</code>，然后你访问他的解包后的值，将在运行的时候报错。当一个变量有可能为<code>nil</code>时，千万不要使用隐式解包可选绑定。</p><h4 id="错误类型"><a href="#错误类型" class="headerlink" title="错误类型"></a>错误类型</h4><p>当一个方法遇到错误条件时会抛出一个错误，方法的调用者就能抓到这个错误然后进行处理</p><p>参考：<a href="http://www.jianshu.com/p/aa8f4a1cb601" target="_blank" rel="noopener">【Swift 3.1】01 - 基础知识 (The Basics)</a></p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h4 id=&quot;Optionals&quot;&gt;&lt;a href=&quot;#Optionals&quot; class=&quot;headerlink&quot; title=&quot;Optionals&quot;&gt;&lt;/a&gt;Optionals&lt;/h4&gt;&lt;p&gt;当一个值可能为空时，就是用可选类型。一个可选类型代表着两种类型：1）有一个特定的值，
+      
+    
+    </summary>
+    
+    
+      <category term="Swift" scheme="http://yoursite.com/categories/Swift/"/>
+    
+    
+      <category term="Swift" scheme="http://yoursite.com/tags/Swift/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>swift传值</title>
+    <link href="http://yoursite.com/2021/11/25/swift%E4%BC%A0%E5%80%BC/"/>
+    <id>http://yoursite.com/2021/11/25/swift%E4%BC%A0%E5%80%BC/</id>
+    <published>2021-11-25T08:16:33.109Z</published>
+    <updated>2021-11-25T08:17:09.271Z</updated>
+    
+    <content type="html"><![CDATA[<p>本文将介绍swift中的传值方式：属性传值、代理传值、闭包传值、通知传值<br>本文将在两个VC之间进行传值：HomeVC、PushVC</p><h3 id="1-属性传值"><a href="#1-属性传值" class="headerlink" title="1.属性传值"></a>1.属性传值</h3><p>属性传值是最常用的正向传值方式，下面过伪代码简单展示</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;HomeVC中</span><br><span class="line">  override func viewDidload() &#123;</span><br><span class="line">    super.viewDidLoad()</span><br><span class="line">    let pushVC &#x3D; PushVC()</span><br><span class="line">    pushVC.str &#x3D; &quot;属性传值&quot;</span><br><span class="line">    &#x2F;&#x2F;假设就在这里跳了，别太计较哦，下同</span><br><span class="line">    self.navigationController?.pushViewController(pushVC,  animated : true)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;PushVC中</span><br><span class="line">  var str : String?</span><br><span class="line">  override func viewDidLoad () &#123;</span><br><span class="line">    super.viewDidLoad()</span><br><span class="line">    print(str!) &#x2F;&#x2F;str -- 属性传值</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure><h3 id="2-代理传值"><a href="#2-代理传值" class="headerlink" title="2.代理传值"></a>2.代理传值</h3><p>废话不多说直接上代码</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;HomeVC中</span><br><span class="line">  class HomeVC : UIViewController, PushVCDelegate &#123;</span><br><span class="line">    override func viewDidLoad() &#123;</span><br><span class="line">      super.viewDidLoad()</span><br><span class="line">      let pushVC &#x3D; PushVC()</span><br><span class="line">      pushVC.delegate &#x3D; self</span><br><span class="line">      self.navigationController?.pushViewController(pushVC, animated : true)</span><br><span class="line">    &#125;</span><br><span class="line">    func pushDelegatePassValue(str : String) &#123;</span><br><span class="line">      print(str) &#x2F;&#x2F;str--代理传值</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;PushVC中</span><br><span class="line">  protocol PushVCDelegate &#123;</span><br><span class="line">    func pushDelegatePassValue(str : String)</span><br><span class="line">  &#125;</span><br><span class="line">  class PushVC : UIViewController &#123;</span><br><span class="line">    var delegate : PushVCDelegate?</span><br><span class="line"></span><br><span class="line">    &#x2F;&#x2F;假设这里是button的点击事件</span><br><span class="line">    func buttonClick &#123;</span><br><span class="line">      self.delegate?.pushDelegatePassValue(str : &quot;代理传值&quot;)</span><br><span class="line">      self.navigationController?.popViewController(animated : true)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure><h3 id="3-闭包传值"><a href="#3-闭包传值" class="headerlink" title="3.闭包传值"></a>3.闭包传值</h3><p>闭包传值分两种情况：直接定义闭包传值、用typealias定义闭包类型传值<br>a.直接定义闭包传值</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;HomeVC中</span><br><span class="line">  class HomeVC : UIViewController &#123;</span><br><span class="line">    override func viewDidLoad() &#123;</span><br><span class="line">      let pushVC &#x3D; PushVC()</span><br><span class="line">      pushVC.closure &#x3D; &#123; (str) -&gt; Void in</span><br><span class="line">        print(str) &#x2F;&#x2F;str -- 闭包传值</span><br><span class="line">      &#125;</span><br><span class="line">      self.navigationController?.pushViewController(pushVC, animated : true)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;PushVC中</span><br><span class="line">  class PushVC : UIViewController &#123;</span><br><span class="line">    let closure : ((String) -&gt; Void)?</span><br><span class="line">    &#x2F;&#x2F;假设这里是button的点击事件</span><br><span class="line">    func buttonClick &#123;</span><br><span class="line">      self.closure!(&quot;闭包传值&quot;)</span><br><span class="line">      self.navigationController?.popViewController(animated : true)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure><p>b.用typealias定义闭包类型传值</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;HomeVC中</span><br><span class="line">  class HomeVC : UIViewController &#123;</span><br><span class="line">    override func viewDidLoad() &#123;</span><br><span class="line">      let pushVC &#x3D; PushVC()</span><br><span class="line">      pushVC.closurePassValue(closureType : &#123; (str) -&gt; Void in</span><br><span class="line">        print(str) &#x2F;&#x2F;str -- 闭包传值</span><br><span class="line">      &#125;)</span><br><span class="line">      self.navigationController?.pushViewController(pushVC, animated : true)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;PushVC中</span><br><span class="line">  typealias Closure : (String) -&gt; Void </span><br><span class="line">  class PushVC : UIViewController &#123;</span><br><span class="line">    var closure : Closure!</span><br><span class="line">    &#x2F;&#x2F;假设这里是button的点击事件</span><br><span class="line">    func buttonClick &#123;</span><br><span class="line">      self.closure(&quot;闭包传值&quot;)</span><br><span class="line">      self.navigationController?.popViewController(animated : true)</span><br><span class="line">    &#125;</span><br><span class="line">    func closurePassValue (closureType : (String) -&gt; Void) &#123;</span><br><span class="line">      self.closure &#x3D; closureType</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure><h3 id="4-通知传值"><a href="#4-通知传值" class="headerlink" title="4.通知传值"></a>4.通知传值</h3><p>通知传值和oc没啥区别，但是还是要写一下的</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;HomeVC中</span><br><span class="line">  class HomeVC : UIViewController &#123;</span><br><span class="line">    override func viewDidLoad() &#123;</span><br><span class="line">      super.viewDidLoad()</span><br><span class="line">      </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F;假设这里是button的点击事件</span><br><span class="line">  func buttonClick &#123;</span><br><span class="line">    let pushVC &#x3D; PushVC()</span><br><span class="line">    NotificationCenter.default.addObserver(forName : NSNotification.Name(rawValue : &quot;haha&quot;), object : nil, queue : OperationQueue.main) &#123; (notify) in</span><br><span class="line">        if let str &#x3D; notify.userInfo?[&quot;666&quot;] &#123;</span><br><span class="line">          print(String(describing : str)) &#x2F;&#x2F;str -- 通知传值</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      self.navigationController?.pushViewController(pushVC, animated: true)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    deinit &#123;</span><br><span class="line">      NotificationCenter.default.removeObserver(self)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;PushVC中</span><br><span class="line">  class PushVC : UIViewController &#123;</span><br><span class="line">    override func viewDidLoad() &#123;</span><br><span class="line">      super.viewDidLoad()</span><br><span class="line">      </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  &#x2F;&#x2F;假设这里是button的点击事件</span><br><span class="line">    func buttonClick &#123;</span><br><span class="line">      NotificationCenter.default.post(name : NSNotification.Name(rawValue : &quot;haha&quot;), object: self, userInfo: [&quot;666&quot; : &quot;通知传值&quot;])</span><br><span class="line">      self.navigationController?.popViewController(animated: true)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;本文将介绍swift中的传值方式：属性传值、代理传值、闭包传值、通知传值&lt;br&gt;本文将在两个VC之间进行传值：HomeVC、PushVC&lt;/p&gt;
+&lt;h3 id=&quot;1-属性传值&quot;&gt;&lt;a href=&quot;#1-属性传值&quot; class=&quot;headerlink&quot; title=&quot;1.属性
+      
+    
+    </summary>
+    
+    
+      <category term="Swift" scheme="http://yoursite.com/categories/Swift/"/>
+    
+    
+      <category term="Swift" scheme="http://yoursite.com/tags/Swift/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>swift中的关键字</title>
+    <link href="http://yoursite.com/2021/11/25/swift%E4%B8%AD%E7%9A%84%E5%85%B3%E9%94%AE%E5%AD%97/"/>
+    <id>http://yoursite.com/2021/11/25/swift%E4%B8%AD%E7%9A%84%E5%85%B3%E9%94%AE%E5%AD%97/</id>
+    <published>2021-11-25T08:14:48.025Z</published>
+    <updated>2021-11-25T08:16:13.263Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="discardableResult"><a href="#discardableResult" class="headerlink" title="discardableResult"></a>discardableResult</h3><p>discardableResult：忽略函数的返回值</p><h3 id="inout"><a href="#inout" class="headerlink" title="inout"></a>inout</h3><p>说到inout就得说swift中的两种参数传递方式：</p><ol><li><p>值传递</p><blockquote><p>值传递的是参数的一个副本，在调用过程中不会影响原始数据</p></blockquote></li><li><p>指针传递</p><blockquote><p>指针传递把参数本身引用(内存地址)传递过去，在调用过程中会影响原始数据<br>在swift的众多类型中，只有calss是指针传递，其余的如Int、Float、struct、enum都是值传递，要想让值传递以指针方式传递，有时候我们需要通过一个函数改变外面变量的值，这时swift中给我们提供了inout关键字</p></blockquote><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">var value &#x3D; 20</span><br><span class="line">print(value)  &#x2F;&#x2F;20</span><br><span class="line">func testInout (valueT : inout Int) &#123;</span><br><span class="line">      valueT &#x3D; valueT + 10</span><br><span class="line">&#125;</span><br><span class="line">testInout(valueT : &amp;value)</span><br><span class="line">print(value) &#x2F;&#x2F;30</span><br></pre></td></tr></table></figure><p>即声明函数时在参数前面用inout修饰，函数内部实现改变函数外部参数，传入参数时在参数前面加&amp;表明这个参数在函数内部是可以修改的(可将改变传到原始数据)</p></li></ol><h3 id="注意-在此插入两个概念-组件-源文件"><a href="#注意-在此插入两个概念-组件-源文件" class="headerlink" title="注意 在此插入两个概念 组件 源文件"></a>注意 在此插入两个概念 组件 源文件</h3><p>组件：为一个代码分布独立单元，一个framework可称为一个组件，在swift中使用其他组件需要使用<code>import</code>关键字<br>源文件：在组件内单独的源代码文件，也就是我们平时创建的 <code>.swift</code> 文件</p><h3 id="private"><a href="#private" class="headerlink" title="private"></a>private</h3><p>private修饰的属性和方法只在当前类里边可以访问</p><h3 id="fileprivate"><a href="#fileprivate" class="headerlink" title="fileprivate"></a>fileprivate</h3><p>fileprivate修饰的属性和方法在当前swift源文件下都可以访问</p><h3 id="open"><a href="#open" class="headerlink" title="open"></a>open</h3><p>1.修饰的属性和方法在其他作用于可以被访问<br>2.修饰的类可以在组件内被继承，也可以在引入当前组件的组件内继承<br>3.修饰的类成员，可以在组件内被子类重载，也可以在引入当前组件的组件内被子类重载</p><h3 id="public"><a href="#public" class="headerlink" title="public"></a>public</h3><p>1.修饰的类只能在组件内被继承<br>2.修饰的类成员只能在组件内被子类重载</p><h3 id="internal"><a href="#internal" class="headerlink" title="internal"></a>internal</h3><p>可以被组件内的任何源文件访问，但是其他组件不能访问</p><h3 id="final"><a href="#final" class="headerlink" title="final"></a>final</h3><p>1.修饰的类不能被继承<br>2.修饰的属性或方法不能被重写</p><h3 id="convenience"><a href="#convenience" class="headerlink" title="convenience"></a>convenience</h3><p>说到<code>convenience</code>就得提及swift中的两种初始化方法：指定初始化方法、便利初始化方法<br>1.指定初始化方法<br>指定初始化方法就是<code>init</code>方法，默认的<code>init</code>方法就是指定初始化方法，<code>init</code>方法不能嵌套使用。(也就是oc中系统的<code>init</code>方法)<br>2.便利初始化方法<br>便利构造方法即在<code>init</code>方法前面加上<code>convenience</code>关键字（也就是oc中开发者自定义的初始化方法）<br><strong>注意：</strong><br>1.便利构造方法必须调用指定构造方法完成初始化，不能单独使用<br>2.便利构造方法可以嵌套使用，但最终都需要调用指定构造方法，不能被子类重写，或被子类super形式调用<br>3.指定构造方法不能嵌套调用<br><em>便利构造方法比指定构造方法更加灵活，为我们开发提供便利，因为更容易满足实际要求，所以在开发中根据需要开设计便利构造方法</em></p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h3 id=&quot;discardableResult&quot;&gt;&lt;a href=&quot;#discardableResult&quot; class=&quot;headerlink&quot; title=&quot;discardableResult&quot;&gt;&lt;/a&gt;discardableResult&lt;/h3&gt;&lt;p&gt;discardabl
+      
+    
+    </summary>
+    
+    
+      <category term="Swift" scheme="http://yoursite.com/categories/Swift/"/>
+    
+    
+      <category term="Swift" scheme="http://yoursite.com/tags/Swift/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>如何在swift中实现oc分类</title>
+    <link href="http://yoursite.com/2021/11/25/%E5%A6%82%E4%BD%95%E5%9C%A8swift%E4%B8%AD%E5%AE%9E%E7%8E%B0oc%E5%88%86%E7%B1%BB/"/>
+    <id>http://yoursite.com/2021/11/25/%E5%A6%82%E4%BD%95%E5%9C%A8swift%E4%B8%AD%E5%AE%9E%E7%8E%B0oc%E5%88%86%E7%B1%BB/</id>
+    <published>2021-11-25T08:14:11.134Z</published>
+    <updated>2021-11-25T08:14:28.240Z</updated>
+    
+    <content type="html"><![CDATA[<p>在oc中为了增强已有类的功能，我们经常使用分类，但是在swift中没有分类这种写法了，相对应的是swift中只有扩展extension，下面是swift中对于扩展的说明：</p><blockquote><p>扩展就是向一个已有的类、结构体、枚举类型或者协议类型添加新功能，扩展和oc中的分类类似，但是swift的扩展没有名字</p></blockquote><p>举个例子：oc中UIView的frame的分类在swift中需要写一个extension来实现</p><blockquote><p>1.首先创建一个swift文件(swift file)<br>2.上代码<br><img src="http://upload-images.jianshu.io/upload_images/3297309-2477bf57be9b4cb4.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="扩展的实现"></p></blockquote>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;在oc中为了增强已有类的功能，我们经常使用分类，但是在swift中没有分类这种写法了，相对应的是swift中只有扩展extension，下面是swift中对于扩展的说明：&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;扩展就是向一个已有的类、结构体、枚举类型或者协议类型添加新功能
+      
+    
+    </summary>
+    
+    
+      <category term="Swift" scheme="http://yoursite.com/categories/Swift/"/>
+    
+    
+      <category term="Swift" scheme="http://yoursite.com/tags/Swift/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>闭包的逃逸</title>
+    <link href="http://yoursite.com/2021/11/25/%E9%97%AD%E5%8C%85%E7%9A%84%E9%80%83%E9%80%B8/"/>
+    <id>http://yoursite.com/2021/11/25/%E9%97%AD%E5%8C%85%E7%9A%84%E9%80%83%E9%80%B8/</id>
+    <published>2021-11-25T08:13:35.712Z</published>
+    <updated>2021-11-25T08:13:50.664Z</updated>
+    
+    <content type="html"><![CDATA[<p>在swift3.0以前，一个函数的参数的闭包的捕捉策略是escaping，如果是一个非逃逸闭包，需要显示的添加声明@noescape。<br>简单的声明就是，如果闭包是函数结束前被调用就是非逃逸的noescape,如果这个闭包实在函数执行完后才被调用，调用的地方超过了这个函数的范围就是逃逸的escaping<br>在swift3.0之后，所有闭包默认为非逃逸的，即不需要声明@noescape，如果是逃逸闭包则需要声明@escaping<br>例如：masonry的闭包是在函数执行完之前会被调用即非逃逸的闭包 @noescape(默认的、不用声明)<br>网络请求的闭包是在数据返回之后才会执行即是逃逸的闭包@escaping(需要声明)</p><p>参考：<a href="http://www.swifthumb.com/thread-14899-1-1.html" target="_blank" rel="noopener">swift3.0必看：@noescape走了，@escaping来了（非）逃逸闭包</a></p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;在swift3.0以前，一个函数的参数的闭包的捕捉策略是escaping，如果是一个非逃逸闭包，需要显示的添加声明@noescape。&lt;br&gt;简单的声明就是，如果闭包是函数结束前被调用就是非逃逸的noescape,如果这个闭包实在函数执行完后才被调用，调用的地方超过了这个函
+      
+    
+    </summary>
+    
+    
+      <category term="Swift" scheme="http://yoursite.com/categories/Swift/"/>
+    
+    
+      <category term="Swift" scheme="http://yoursite.com/tags/Swift/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Swift中协议可选的实现</title>
+    <link href="http://yoursite.com/2021/11/25/Swift%E4%B8%AD%E5%8D%8F%E8%AE%AE%E5%8F%AF%E9%80%89%E7%9A%84%E5%AE%9E%E7%8E%B0/"/>
+    <id>http://yoursite.com/2021/11/25/Swift%E4%B8%AD%E5%8D%8F%E8%AE%AE%E5%8F%AF%E9%80%89%E7%9A%84%E5%AE%9E%E7%8E%B0/</id>
+    <published>2021-11-25T08:11:03.175Z</published>
+    <updated>2021-11-25T08:12:59.467Z</updated>
+    
+    <content type="html"><![CDATA[<p>swift中的可选协议的实现有以下两种实现方式:</p><h4 id="一、protocol-extension"><a href="#一、protocol-extension" class="headerlink" title="一、protocol extension"></a>一、protocol extension</h4><p>原生的 Swift protocol 里没有可选项，所有定义的方法都是必须实现的。如果我们想要像 Objective-C 里那样定义可选的接口方法，就需要将接口本身定义为 Objective-C 的，也即在 protocol 定义之前加上 @objc。另外和 Objective-C 中的 @optional 不同，我们使用没有 @ 符号的关键字 optional 来定义可选方法：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">@objc protocol OptionalProtocol &#123;</span><br><span class="line">    optional func optionalMethod()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>另外，对于所有的声明，它们的前缀修饰是完全分开的。也就是说你不能像是在 Objective-C 里那样用一个 @optional 指定接下来的若干个方法都是可选的了，必须对每一个可选方法添加前缀，对于没有前缀的方法来说，它们是默认必须实现的：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">@objc protocol OptionalProtocol &#123;</span><br><span class="line">    optional func optionalMethod()  &#x2F;&#x2F; 可选</span><br><span class="line">    func necessaryMethod()          &#x2F;&#x2F; 必须</span><br><span class="line">    optional func anotherOptionalMethod() &#x2F;&#x2F; 可选</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>一个不可避免的限制是，使用 @objc 修饰的 protocol 就只能被 class 实现了，也就是说，对于 struct 和 enum 类型，我们是无法令它们所实现的接口中含有可选方法或者属性的。另外，实现它的 class 中的方法还必须也被标注为 @objc，或者整个类就是继承自 NSObject。这对我们写代码来说是一种很让人郁闷的限制。</p><p>在Swift2.0以后我们可以在声明一个 protocol 之后再用 extension 的方式给出部分方法默认的实现。这样这些方法在实际的类中就是可选实现的了</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">protocol OptionalProtocol &#123;</span><br><span class="line">    func optionalMethod()        &#x2F;&#x2F; 可选</span><br><span class="line">    func necessaryMethod()       &#x2F;&#x2F; 必须</span><br><span class="line">    func anotherOptionalMethod() &#x2F;&#x2F; 可选</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">extension OptionalProtocol &#123;</span><br><span class="line">    func optionalMethod() &#123;</span><br><span class="line">        print(&quot;Implemented in extension&quot;)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    func anotherOptionalMethod() &#123;</span><br><span class="line">        print(&quot;Implemented in extension&quot;)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class MyClass: OptionalProtocol &#123;</span><br><span class="line">    func necessaryMethod() &#123;</span><br><span class="line">        print(&quot;Implemented in Class3&quot;)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    func optionalMethod() &#123;</span><br><span class="line">        print(&quot;Implemented in Class3&quot;)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">let obj &#x3D; MyClass()</span><br><span class="line">obj.necessaryMethod() &#x2F;&#x2F; Implemented in Class3</span><br><span class="line">obj.optionalMethod()  &#x2F;&#x2F; Implemented in Class3</span><br><span class="line">obj.anotherOptionalMethod() &#x2F;&#x2F; Implemented in extension</span><br></pre></td></tr></table></figure><p>参考：<a href="[https://swifter.tips/objc-protocol/](https://swifter.tips/objc-protocol/)">Swift必备tips-王巍</a></p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;swift中的可选协议的实现有以下两种实现方式:&lt;/p&gt;
+&lt;h4 id=&quot;一、protocol-extension&quot;&gt;&lt;a href=&quot;#一、protocol-extension&quot; class=&quot;headerlink&quot; title=&quot;一、protocol extension
+      
+    
+    </summary>
+    
+    
+      <category term="Swift" scheme="http://yoursite.com/categories/Swift/"/>
+    
+    
+      <category term="Swift" scheme="http://yoursite.com/tags/Swift/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Swift中类和结构体的区别</title>
+    <link href="http://yoursite.com/2021/11/25/Swift%E4%B8%AD%E7%B1%BB%E5%92%8C%E7%BB%93%E6%9E%84%E4%BD%93%E7%9A%84%E5%8C%BA%E5%88%AB/"/>
+    <id>http://yoursite.com/2021/11/25/Swift%E4%B8%AD%E7%B1%BB%E5%92%8C%E7%BB%93%E6%9E%84%E4%BD%93%E7%9A%84%E5%8C%BA%E5%88%AB/</id>
+    <published>2021-11-25T08:07:56.451Z</published>
+    <updated>2021-11-25T08:10:41.658Z</updated>
+    
+    <content type="html"><![CDATA[<h4 id="类是引用类型，结构体是值类型。"><a href="#类是引用类型，结构体是值类型。" class="headerlink" title="类是引用类型，结构体是值类型。"></a>类是引用类型，结构体是值类型。</h4><p>值类型在传递和赋值时将进行复制，而引用类型则只会使用引用对象的一个指向。引用类型是在堆上，而值类型是在栈上进行存储和操作。相比栈上的操作，对上的操作更加复杂耗时，所以苹果官方推荐使用结构体，这样可以提高App运行的效率。</p><h5 id="class有这几个功能struct没有的："><a href="#class有这几个功能struct没有的：" class="headerlink" title="class有这几个功能struct没有的："></a>class有这几个功能struct没有的：</h5><p>class可以继承，这样子类可以使用父类的特性和方法。<br>类型转换可以在runtime的时候检查和解释一个实例的类型。<br>可以用deinit来释放资源。<br>一个类可以被多次引用。</p><h5 id="struct也有这样几个优势："><a href="#struct也有这样几个优势：" class="headerlink" title="struct也有这样几个优势："></a>struct也有这样几个优势：</h5><p>结构较小，适用于复制操作，相比于一个class的实例被多次引用更加安全。<br>无序担心内存泄漏或者多线程冲突问题。</p><p><a href="https://www.jianshu.com/p/e6f68245b620" target="_blank" rel="noopener">出处-&gt;</a></p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h4 id=&quot;类是引用类型，结构体是值类型。&quot;&gt;&lt;a href=&quot;#类是引用类型，结构体是值类型。&quot; class=&quot;headerlink&quot; title=&quot;类是引用类型，结构体是值类型。&quot;&gt;&lt;/a&gt;类是引用类型，结构体是值类型。&lt;/h4&gt;&lt;p&gt;值类型在传递和赋值时将进行复制，而引
+      
+    
+    </summary>
+    
+    
+      <category term="Swift" scheme="http://yoursite.com/categories/Swift/"/>
+    
+    
+      <category term="Swift" scheme="http://yoursite.com/tags/Swift/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>tableView刷新中的问题</title>
+    <link href="http://yoursite.com/2021/11/25/tableView%E5%88%B7%E6%96%B0%E4%B8%AD%E7%9A%84%E9%97%AE%E9%A2%98/"/>
+    <id>http://yoursite.com/2021/11/25/tableView%E5%88%B7%E6%96%B0%E4%B8%AD%E7%9A%84%E9%97%AE%E9%A2%98/</id>
+    <published>2021-11-25T08:07:07.347Z</published>
+    <updated>2021-11-25T08:07:31.840Z</updated>
+    
+    <content type="html"><![CDATA[<p>在开始之前先上一张效果图</p><p><img src="http://upload-images.jianshu.io/upload_images/3297309-f2bed6e3220f0ab0.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="效果图"><br>相信大家都看到了“店铺优惠”这一栏，在这里假设这一栏就是单独的一个cell，当无店铺优惠的时候不可点击在有店铺优惠的时候会弹出优惠列表，选中并返回时会刷新数据，所以弹出视图采用的是懒加载的方式，而且刷新页面的方式采用的不是<code>tableView</code>的<code>reloadData</code>来刷新整个列表而是采用刷新单行的方式<code>reloadRowsAtIndexPaths: withRowAnimation:</code></p><p>然而令我惊呆的事情出现了，在存在店铺优惠多次点击弹出框的时候本来选中的优惠列表里面的选中数据居然发生了变化，导致返回来的数据也在不断地改变，本来是一次愉快的选择却发生了这么不可预测的事情，思前想后也没找到问题的所在，最后不得不在这个刷新方式上试着看能不能找到问题</p><p>事情果然不出我的所料在懒加载弹出框视图的时候居然创建了两次，不多不少，就是两次，于是我就在想肯定是复用的地方出问题了，但是看了代码并没有觉的有什么问题，但是也习惯性的打了个断点看看到底是怎么走的，然而事情的发展超出了预料的结果，在cell已经创建过的前提下在刷新的时候居然又创建了一个新的cell，于是狠下心来将刷新方法换成<code>reloadData</code>，这次就没有问题了，最后确定了还是<code>reloadRowsAtIndexPaths: withRowAnimation:</code>搞的鬼</p><p>查阅了资料以后得知<code>reloadRowsAtIndexPaths: withRowAnimation:</code>在刷新的时候会有cell进入和移出的动画, 所以同时需要至少两个可用的的cell(包括复用池中的cell)，而<code>reloadData</code>会先将所有cell都先放到复用池中, 然后再从复用池中取可以复用的cell<br>这下真相大白了</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;在开始之前先上一张效果图&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;http://upload-images.jianshu.io/upload_images/3297309-f2bed6e3220f0ab0.png?imageMogr2/auto-orient/strip%7Ci
+      
+    
+    </summary>
+    
+    
+      <category term="Objective-C" scheme="http://yoursite.com/categories/Objective-C/"/>
+    
+    
+      <category term="Objective-C" scheme="http://yoursite.com/tags/Objective-C/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>更自然的解决字典数组插入nil而导致crash</title>
+    <link href="http://yoursite.com/2021/11/25/%E6%9B%B4%E8%87%AA%E7%84%B6%E7%9A%84%E8%A7%A3%E5%86%B3%E5%AD%97%E5%85%B8%E6%95%B0%E7%BB%84%E6%8F%92%E5%85%A5nil%E8%80%8C%E5%AF%BC%E8%87%B4crash/"/>
+    <id>http://yoursite.com/2021/11/25/%E6%9B%B4%E8%87%AA%E7%84%B6%E7%9A%84%E8%A7%A3%E5%86%B3%E5%AD%97%E5%85%B8%E6%95%B0%E7%BB%84%E6%8F%92%E5%85%A5nil%E8%80%8C%E5%AF%BC%E8%87%B4crash/</id>
+    <published>2021-11-25T08:05:36.597Z</published>
+    <updated>2021-11-25T08:06:42.475Z</updated>
+    
+    <content type="html"><![CDATA[<p>最近在优化项目虽说小优化一直在持续，大版本的优化也进行了两个版本了但是bug列表依旧血淋淋的摆在那里。有的看一眼也能找到问题所在但是有的就是想破头也不知道问题在哪里，毕竟整个项目经过了N个人的手代码风格迥异阅读起来也会有不小的困难，因此在这分享一下解决这些个bug之间遇到的问题和一些看似实用的方法。</p><p>首先是字典中插入<code>nil</code>和数组中插入<code>nil</code>以及数组的越界问题<br>有人就会说在插入之前和取数组元素之前判断一下不就解决问题了吗？<br>那么你在字典中插入数据可能就是类似这样的写法：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">NSMutableDictionary *mDict &#x3D; [NSMutableDictionary dictionary];</span><br><span class="line">[mDict setObject:(string ? : @&quot;&quot;) forKey:@&quot;key&quot;];</span><br></pre></td></tr></table></figure><p><em>也许大家会有这种想法：何必在这这么判断呢？写一个公共方法或者宏不就比这个简洁吗，事实确实如此，然而代码中过多的使用宏会在预处理阶段消耗大量的时间从而削弱用户体验，也不知道是什么原因导致在<code>swift</code>中直接就取消了宏这个东西</em></p><p>同样的在数组中添加元素也是类似的写法：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">NSMutableArray *marr &#x3D; [NSMutableArray array];</span><br><span class="line">[marr addObject:(string ? : @&quot;&quot;)];</span><br></pre></td></tr></table></figure><p>获取数组中的元素可能会是这样子的</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">if (index &lt; marr.count) &#123;</span><br><span class="line">  NSString *elem &#x3D; marr[index];</span><br><span class="line">&#125; else &#123;</span><br><span class="line">  NSLog(@&quot;越界了&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>上面这样写在实际项目中完全没有问题，而且也是最简单最暴力的写法，然而人类的创造力是无限的，当然了作为程序员的我们更是有着一颗想要通过自己的双手去改变世界的心(然而也只是想想并没有什么卵用)，自然而然的就会衍生出各种各样的写法，比如将获取数组元素修改为下面这个样子：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">@interface NSArray (NHAdd)</span><br><span class="line">- (id)objectOrNilAtIndex:(NSUInteger) index;</span><br><span class="line">@end</span><br><span class="line"></span><br><span class="line">@implementation NSArray (NHAdd)</span><br><span class="line">- (id)objectOrNilAtIndex:(NSUInteger) index &#123;</span><br><span class="line">  return index &lt; self.count ? self[index] : nil;</span><br><span class="line">&#125;</span><br><span class="line">@end</span><br></pre></td></tr></table></figure><p>看到这里我相信大家都松了一口气，再也不用写上面无聊反复的判断了，只要在获取数组元素的时候调用上面分类的方法一切崩溃问题都会迎刃而解。<br>然而现实总是残酷的，残酷的现实如下：</p><ul><li>调用上面分类的方法那么就意味着我们再也不能像这样<code>marr[2]</code>来获取数组的元素，只能通过调用<code>objectOrNilAtIndex:2</code>来获取元素，在某种意义上来说会降低代码的可读性，当然了苹果也是推荐我们使用更为简单直观的方法来实现功能。</li><li>笔者在一开始就说过如果一个项目是经过了N个人的✋，那么由于当时的大环境影响不可能在每个取数组元素的地方都是这么写的，那么在没有处理过的地方就有可能会crash掉，那么就有人会说把相应的地方替换一下不就可以了吗？世上无难事只怕有心人，替换当然是可以的，但前提是你得给我一年的时间😠</li><li>就算在分类里添加了对越界的处理然而打败你的不是天真也不是无邪而是习惯，最怕的就是习惯养成自然，在弹指一挥间你就会将获取元素的方法写成<code>marr[3]</code>或者<code>[marr objectAtIndex:3]</code>那么隐患也就不知不觉的与你随行</li></ul><p>到了这了就会有人问：难道就没有一个方法来解决这个问题的吗？不 不 不 笔者说过程序员是一个创造力无限的物种那么这个小问题也就如蚂蚁一样任你摆布😜 😝，自然而然的就引出了在<code>Objective-C</code>中如操盘手一般的<code>Runtime</code>简单点来说<code>Runtime</code>就好比你买了个iPhone X除了能知道你有钱以外还能让你装个逼，同样的<code>Runtime</code>除了能让别人知道你学富五车外你还能在不经意间装个逼，当然了对于笔者这种仅仅略懂皮毛中九牛一毛的初学者来说还是装不起的，毕竟装逼遭雷劈呀<br>那么接下来就简单介绍一下本文中用到的<code>Runtime</code>的几个函数：<br>1.<code>class_getInstanceMethod</code>得到相应类中的Method方法，该方法适用于要获取的方法是实例方法</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line">  得到相应类中的Method方法</span><br><span class="line">  @param cls 目标类</span><br><span class="line">  @param name 目标类中的方法</span><br><span class="line">  @return 得到Method方法</span><br><span class="line">*&#x2F;</span><br><span class="line"> Method class_getInstanceMethod(Class cls, SEL name)</span><br></pre></td></tr></table></figure><p>2.<code>class_getClassMethod</code>得到相应类中的Method方法，该方法适用于要获取的方法是类方法</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line">  得到相应类中的Method方法</span><br><span class="line">  @param cls 目标类</span><br><span class="line">  @param name 目标类中的方法</span><br><span class="line">  @return 得到Method方法</span><br><span class="line">*&#x2F;</span><br><span class="line">Method class_getClassMethod(Class cls, SEL name)</span><br></pre></td></tr></table></figure><p>3.<code>class_addMethod</code>给类添加一个新的方法和该方法的具体实现</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line">  给类添加一个新的方法和该方法的具体实现</span><br><span class="line">  @param cls 被添加方法的类</span><br><span class="line">  @param name 被添加方法的方法名</span><br><span class="line">  @param imp 即 implementation ，表示由编译器生成的、指向实现方法的指针。也就是说，这个指针指向的方法就是我们要添加的方法</span><br><span class="line">  @param *type 表示我们要添加的方法的返回值和参数</span><br><span class="line">  @return 返回值表示添加成功或者失败</span><br><span class="line">*&#x2F;</span><br><span class="line">BOOL class_addMethod(Class cls, SEL name, IMP imp, const char *types)</span><br></pre></td></tr></table></figure><p>4.<code>class_replaceMethod</code>替换类中已有方法的实现,如果该方法不存在添加该方法</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line">  替换类中已有方法的实现,如果该方法不存在添加该方法</span><br><span class="line">  @param cls 目标类</span><br><span class="line">  @param name 替换方法的方法名</span><br><span class="line">  @param imp 被替换方法的实现</span><br><span class="line">  @param *types 被替换方法的返回值和参数</span><br><span class="line">  @return 返回替换方法的实现</span><br><span class="line">*&#x2F;</span><br><span class="line">IMP class_replaceMethod(Class cls, SEL name, IMP imp, const char *types)</span><br></pre></td></tr></table></figure><p>5.<code>method_exchangeImplementations</code>替换两个方法的实现</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"> &#x2F;**</span><br><span class="line">  替换两个方法的实现</span><br><span class="line">  @param m1 方法1</span><br><span class="line">  @param m2 方法2</span><br><span class="line">*&#x2F;</span><br><span class="line">void method_exchangeImplementations(Method m1, Method m2)</span><br></pre></td></tr></table></figure><hr><p>看到这里就证明已经成功了一半了，接下来就先实现在<code>NSDictionary</code>中插入<code>nil</code>的处理：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">@interface NSMutableDictionary (NullSafe)</span><br><span class="line">@end</span><br><span class="line"></span><br><span class="line">@implementation NSMutableDictionary (NullSafe)</span><br><span class="line">+(void)load &#123;</span><br><span class="line">  static dispatch_once_t onceToken;</span><br><span class="line">  dispatch_once(&amp;ondeToken, ^&#123;</span><br><span class="line">    id obj &#x3D; [[self alloc] init];</span><br><span class="line">    [obj swizzleMethod:@selector(setObject:forKey:) withMethod:@selector(safe_setObject:forKey:)];</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br><span class="line">  </span><br><span class="line">-(void)swizzleMethod:(SEL)originalSelector withMethod:(SEL)newSelector &#123;</span><br><span class="line">  Class class &#x3D; [self class];</span><br><span class="line">  Method originalMethod &#x3D; class_getInstanceMethod(class,originalSelector);</span><br><span class="line">  Method swizzleMethod &#x3D; class_getInstanceMethod(class, newSelector);</span><br><span class="line">  Bool didAddMethod &#x3D; class_addMethod(class, originalSelector, method_getImplementation(swizzleMethod),  class_getTypeEncoding(swizzleMethod));</span><br><span class="line">  if (didAddMethod) &#123;</span><br><span class="line">    &#x2F;&#x2F;YES - 说明类中不存在这个方法的实现需要将被交换方法的实现替换到这个并不存在的实现</span><br><span class="line">    class_replaceMethod(class, newSelector, method_getImplementation(swizzleMethod), method_getTypeEncoding(swizzleMethod));</span><br><span class="line">  &#125;else &#123;</span><br><span class="line">    &#x2F;&#x2F;NO-存在这个方法的实现只要交换即可</span><br><span class="line">    class_exchangeImplementation(originalMethod, swizzleMethod);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">-(void)safe_setObject:(id)value forKey:(NSString *)key &#123;</span><br><span class="line">  if (value) &#123;</span><br><span class="line">    [self safe_setObject:value forKey:key];</span><br><span class="line">  &#125;else &#123;</span><br><span class="line">    NSLog(@&quot;[NSMutableDictionary setObject: forKey:], Object cannot be nil&quot;);</span><br><span class="line">  &#125;</span><br><span class="line">@end</span><br></pre></td></tr></table></figure><p>ok 到这里就实现了在<code>NSMutableDictionary</code>中插入<code>nil</code>的处理，然而有人就会对类方法<code>+(void)load</code>产生疑问，其实不用担心，有疑问者可以看笔者的另一篇文章，这里是传送门 <a href="http://www.jianshu.com/p/46b0a733d259" target="_blank" rel="noopener">load方法和initialize方法</a></p><hr><p>接下来说说在<code>NSMutableArray</code>中插入<code>nil</code>的处理<br>此时你也许可能会想数组中添加元素的方法比如说：<code>addObject:</code> 、<code>insertObject:atIndex:</code>那么也就意味着需要像上面字典处理<code>nil</code>一样需要替换两个方法，然而细心的你可能会发现当往数组中插入<code>nil</code>时无论你用<code>addObject:</code> 还是<code>insertObject:atIndex:</code>在控制台都会输出同样的一串crash的原因：<code>&#39;*** -[__NSArrayM insertObject:atIndex:]: object cannot be nil&#39;</code>so不难看出在调用<code>addObject:</code>时实际上在API内部还是走的<code>insertObject:atIndex</code>方法，因此只需要如上那样将<code>insertObject:atIndex</code>替换即可，代码如下：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">@implementation NSMutableArray (NullSafe)</span><br><span class="line">+(void)load &#123;</span><br><span class="line">  static dispatch_once_t onceToken;</span><br><span class="line">  dispatch_once(&amp;ondeToken, ^&#123;</span><br><span class="line">    id obj &#x3D; [[self alloc] init];</span><br><span class="line">    &#x2F;&#x2F;这个方法的实现就是上面的那个，实际开发中可提取出来统一使用</span><br><span class="line">    [obj swizzleMethod:@selector(insertObject:atIndex:) withMethod:@selector(safe_insertObject:atIndex:)];</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">-(void)safe_insertObject:(id)value atIndex:(NSUInteger)index &#123;</span><br><span class="line">  if (value) &#123;</span><br><span class="line">      [self safe_insertObject:value atIndex:index];</span><br><span class="line">  &#125;else &#123;</span><br><span class="line">       NSLog(@&quot;object can&#39;t be nil&quot;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">@end</span><br></pre></td></tr></table></figure><p>然而除了在数组中插入<code>nil</code>外还可能crash的另外一种原因就是数组越界，即出现这类型的报错原因：<code>&#39;*** -[__NSArrayM objectAtIndex:]: index 3 beyond bounds for empty array&#39;</code>so有了上面的例子还会怕什么，考虑再三为了阅读方便就将上面的东西再写一遍吧，略微有点强迫症，很恐怖</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">@implementation NSMutableArray (NullSafe)</span><br><span class="line">+(void)load &#123;</span><br><span class="line">  static dispatch_once_t onceToken;</span><br><span class="line">  dispatch_once(&amp;ondeToken, ^&#123;</span><br><span class="line">    id obj &#x3D; [[self alloc] init];</span><br><span class="line">    &#x2F;&#x2F;这个方法的实现就是上面的那个，实际开发中可提取出来统一使用</span><br><span class="line">    [obj swizzleMethod:@selector(objectAtIndex:) withMethod:@selector(safe_objectAtIndex:)];</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">-(id)safe_objectAtIndex:(NSUInteger)index &#123;</span><br><span class="line">    if (index &lt; self.count) &#123;</span><br><span class="line">        return [self safe_objectAtIndex:index];</span><br><span class="line">    &#125;else &#123;</span><br><span class="line">        NSLog(@&quot;index is out of array bounds&quot;);</span><br><span class="line">        return nil;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">@end</span><br></pre></td></tr></table></figure><p>到此为止无论你喜欢用<code>marr[3]</code>还是<code>[marr objectAtIndex:3]</code>其实都已经无所谓了，因为都不会发生crash了，也许你会发现一个事实那就是在<code>safe_objectAtIndex</code>这些方法里面当满足条件的时候为什么要调用<code>safe_objectAtIndex</code>方法自身而不是调用<code>objectAtIndex:</code>其实很简单因为原来系统的方法已经被替换为你自己的方法当再次调用系统方法时会一直替换最终造成死循环，可是在你调用你自己的方法时该方法的实现已经被替换为系统的实现就可以顺理成章的取到你想要的值。</p><p>其实这里还有一个bug就是在调用<code>insertObject:atIndex:</code>方法时因为只处理了插入元素是否为空而没有对<code>index</code>是否越界做处理，正在积极研究同时观众老爷有什么好的办法希望指点一二(这么说好像真的有人会看似的☺)。</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;最近在优化项目虽说小优化一直在持续，大版本的优化也进行了两个版本了但是bug列表依旧血淋淋的摆在那里。有的看一眼也能找到问题所在但是有的就是想破头也不知道问题在哪里，毕竟整个项目经过了N个人的手代码风格迥异阅读起来也会有不小的困难，因此在这分享一下解决这些个bug之间遇到的
+      
+    
+    </summary>
+    
+    
+      <category term="Objective-C" scheme="http://yoursite.com/categories/Objective-C/"/>
+    
+    
+      <category term="Objective-C" scheme="http://yoursite.com/tags/Objective-C/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>断言</title>
+    <link href="http://yoursite.com/2021/11/25/%E6%96%AD%E8%A8%80/"/>
+    <id>http://yoursite.com/2021/11/25/%E6%96%AD%E8%A8%80/</id>
+    <published>2021-11-25T08:03:58.486Z</published>
+    <updated>2021-11-25T08:04:59.984Z</updated>
+    
+    <content type="html"><![CDATA[<p>本文将简单的介绍ios中的几种断言方式</p><h5 id="1-assert"><a href="#1-assert" class="headerlink" title="1. assert"></a>1. assert</h5><p>assert只是一个宏，用于开发阶段调试程序中的bug，通过为assert()来传递表达式来判断是否属于bug，满足条件返回真值程序继续运行，如果返回假则抛出异常，但是assert仅仅只是简单的抛出异常终止程序。</p><h5 id="2-NSAssert"><a href="#2-NSAssert" class="headerlink" title="2. NSAssert"></a>2. NSAssert</h5><p>NSAssert也仅仅是一个宏，条件判断与assert相同，不同的是可以自定义异常的描述，在条件返回假时会提示错误信息并打印出来。<br>例如：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">- (void)testAssert &#123;</span><br><span class="line">  int a &#x3D; 0;</span><br><span class="line">  NSAssert(a, @&quot;a的值不能为0&quot;);</span><br><span class="line">  NSLog(@&quot;程序正常运行了&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>当程序执行时运行到断言处会crash并在控制台会提示上述自定义的报错信息。</p><h5 id="3-NSParameterAssert-NSCparameterAssert"><a href="#3-NSParameterAssert-NSCparameterAssert" class="headerlink" title="3. NSParameterAssert/NSCparameterAssert"></a>3. NSParameterAssert/NSCparameterAssert</h5><p>NSParameterAssert是适用于Objective-C的方法，NSCparameterAssert是适用于C的函数</p><h5 id="4-NSAssert与NSParameterAssert的区别"><a href="#4-NSAssert与NSParameterAssert的区别" class="headerlink" title="4. NSAssert与NSParameterAssert的区别"></a>4. NSAssert与NSParameterAssert的区别</h5><p>先来看看NSParameterAssert的定义：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">#define NSParameterAssert(condition) NSAssert((condition), @&quot;Invalid parameter not satisfying: %@&quot;, @#condition)</span><br></pre></td></tr></table></figure><p>从定义中不难看到NSParameterAssert是对NSAssert的重新定义在某种意义上来说他两是等价的，具体的区别未完待续。。。</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;本文将简单的介绍ios中的几种断言方式&lt;/p&gt;
+&lt;h5 id=&quot;1-assert&quot;&gt;&lt;a href=&quot;#1-assert&quot; class=&quot;headerlink&quot; title=&quot;1. assert&quot;&gt;&lt;/a&gt;1. assert&lt;/h5&gt;&lt;p&gt;assert只是一个宏，用于开发阶
+      
+    
+    </summary>
+    
+    
+      <category term="Objective-C" scheme="http://yoursite.com/categories/Objective-C/"/>
+    
+    
+      <category term="Objective-C" scheme="http://yoursite.com/tags/Objective-C/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>LLDB调试器简介</title>
+    <link href="http://yoursite.com/2021/11/25/LLDB%E8%B0%83%E8%AF%95%E5%99%A8%E7%AE%80%E4%BB%8B/"/>
+    <id>http://yoursite.com/2021/11/25/LLDB%E8%B0%83%E8%AF%95%E5%99%A8%E7%AE%80%E4%BB%8B/</id>
+    <published>2021-11-25T08:00:38.756Z</published>
+    <updated>2021-11-25T08:00:59.170Z</updated>
+    
+    <content type="html"><![CDATA[<p>对于LLDB调试相信很多开发者都不陌生但是也仅仅停留在下断点看数据的阶段，使用最多的命令也就是po甚至包括我在内的一部分开发者也就会使用这一条命令，因为在平时的开发中这已经能够满足我们的使用要求了，有一次在听唐巧大神的分享会的时候当时大神在LLDB里面进行各种操作简直是亮瞎了我的双眼这不才在晚上搜索了一下这个东西才发现原来这里暗藏玄机，其实网上的帖子都已经讲的很清晰了可是为什么自己还要自己写一遍呢？说白了就是想着自己再加深一遍印象以后再回来看的时候能快速的找到地方。<br>下面来切入正题：<br>#####1.LLDB简介</p><blockquote><p><a href="http://lldb.llvm.org/" target="_blank" rel="noopener">LLDB</a> 是一个有着 REPL 的特性和 C++ ,Python 插件的<a href="http://lldb.llvm.org/source.html" target="_blank" rel="noopener">开源</a>调试器。LLDB 绑定在 Xcode 内部，存在于主窗口底部的控制台中。调试器允许你在程序运行的特定时暂停它，你可以查看变量的值，执行自定的指令，并且按照你所认为合适的步骤来操作程序的进展。<br>你以前有可能已经使用过调试器，即使只是在 Xcode 的界面上加一些断点。但是通过一些小的技巧，你就可以做一些非常酷的事情。<a href="http://lldb.llvm.org/lldb-gdb.html" target="_blank" rel="noopener">GDB to LLDB</a> 参考是一个非常好的调试器可用命令的总览。你也可以安装 <a href="https://github.com/facebook/chisel" target="_blank" rel="noopener">Chisel</a>，它是一个开源的 LLDB 插件合辑，这会使调试变得更加有趣。<br>来自 <a href="https://objccn.io/issue-19-2/" target="_blank" rel="noopener">与调试器共舞 - LLDB 的华尔兹</a></p></blockquote><h5 id="2-简单命令的讲解"><a href="#2-简单命令的讲解" class="headerlink" title="2. 简单命令的讲解"></a>2. 简单命令的讲解</h5><p>先来一段代码片段，下面的讲解大都是基于此</p><p><img src="http://upload-images.jianshu.io/upload_images/3297309-ee0c8a23a5bf740e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="片段"></p><ul><li>help<br>见文识意，可以通过输入<code>help</code>命令来了解全部的lldb的指令也可以输入<code>help &lt;command&gt;</code>来获取某一个特定指令的详细注解</li><li>print  简写为 p<br><img src="http://upload-images.jianshu.io/upload_images/3297309-ad1601b22932954e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="print命令"><br> 细心的人可能会注意到在输出结果中有<code>$0</code>，任何以美元符开头的东西都是存在于 LLDB 的命名空间的，试试<code>print $0 + 7</code>，你会看到 <code>106</code>，实际上<code>$0</code>是指向这个结果的</li><li>po<br><img src="http://upload-images.jianshu.io/upload_images/3297309-0676092a9ab07d12.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="po指令"><br>相对<code>print</code>指令<code>po</code>指令仅仅是打印变量的<code>description</code>方法</li><li>breakpoint<br>a 给某个文件的某一行下断点<code>breakpoint set --file ViewController.m --line 20</code>或者简写为<code>breakpoint set -f ViewControlloer.m -l 20</code>断点成功后的提示：<br><img src="http://upload-images.jianshu.io/upload_images/3297309-ff8e21530ec64c9a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="设置某一行的断点"><br>b 给某个函数下断点<code>breakpoint set -n -[ViewController testFunction]</code><br>c 给指定的动态库中指定的方法添加断点<code>breakpoint set -s libate.dylib -n freePartitionTables2D</code><br>d 查看断点的列表<code>breakpoint list</code><br>e 删除断点<code>breakpoint delete</code></li><li>watchPoint - 观测某个变量值的具体变化<br>比如我们要观测变量<code>i</code>的变化<code>watchpoint set variable i</code>，只要被检测的变量值发生改变即会被检测到。成功检测后的结果如下：<br><img src="http://upload-images.jianshu.io/upload_images/3297309-97c65603179afadc.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="成功检测某个变量后的结果"><br>也可以在这里检测：<br><img src="http://upload-images.jianshu.io/upload_images/3297309-d86aeb5d9b683852.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>甚至可以设置变量<code>i</code>触发的条件：<code>watchpoint modify -c &#39;(i=40)&#39;</code>当<code>i</code>的值变化到40时触发<br>我们可以看一下具体断点的参数，使用<code>watchpoint list</code>命令<br><img src="http://upload-images.jianshu.io/upload_images/3297309-c1a735d55f301116.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>此时可以看到观察的变量的地址、声明变量的代码所在的行数、当前变量的值以及触发所需要的条件</li><li>image<br>该命令用于寻址，假如程序由于某个原因崩溃掉了然而崩溃并没有给你定位到具体的信息而是直接怵在了<code>main</code>函数里边，此时<code>image</code>指令将极大的帮助你。使用指令：<code>image lookup --address</code>，在这里笔者举个简单的数组越界的定位例子：<br><img src="http://upload-images.jianshu.io/upload_images/3297309-5de04fa6e17b2672.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>不要问我崩溃地址从哪看这个这个应该能找到吧😑 ，行数都已经显示出来了还有什么解决不了的呢</li><li>thread<br>a <code>thread list</code>查看当前进程状态，前面带有 * 号的那条线程代表的就是当前线程<br>b <code>thread backtrace</code>作用是打印出当前线程的堆栈信息。当程序发生了crash后，我们可以用该命令打印出发生crash的当前的程序堆栈，查询出发生crash的调用路径。由于比较常用，所以LLDB直接给它一个特殊的<code>bt</code>别名。<br>c <code>thread</code>另一个比较常用的用法是 <code>thread return</code>，调试的时候，我们希望在当前执行的程序堆栈直接返回一个自己想要的值，可以执行该命令直接返回。<code>thread return</code>带有一个可选的返回值。</li><li>frame<br><code>frame</code>即是帧，其实就是当前的程序堆栈，我们使用<code>bt</code>打印出来的是当前线程的<code>frame</code>，而我们关心的是当前堆栈的变量值，我们可以使用<code>frame variable</code>获取全部变量值。也可以通过<code>frame variable self-&gt; count</code>来获取某个特定的变量的值。</li><li>expression - (e)<br>个人感觉这条命令比较强大，因为什么呢？马上就说。因为它能改变一个变量在调试器以及程序当中的值，而当程序继续执行时会使用改变过后的值。<br>命令的使用方法：<code>expression count = 5</code>，从此以后变量<code>count</code>的值就变成了5</li></ul><p>当然了有人会有这样的疑问：我打个断点直接利用xcode就能打上何必要用这么复杂难记得命令行呢？其实在实际开发中除非遇到难以解决的问题会用到lldb的命令行以外一般确实用不到，就比如说要为<code>.a</code>文件里的某个方法里打断点，此时命令行可能就是你的救星了。然而xcode其实已经在自己的GUI界面里面为我们实现了一部分的命令只是在平时开发中并没有注意到接下来就为了我方便记忆的原则来简单写一下。</p><h5 id="3-XcodeGUI界面介绍"><a href="#3-XcodeGUI界面介绍" class="headerlink" title="3.XcodeGUI界面介绍"></a>3.XcodeGUI界面介绍</h5><ol><li>先来一发图<br><img src="http://upload-images.jianshu.io/upload_images/3297309-1059f8ce08903928.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>相信大家看着这张图并不陌生，但是呢可能会对后面的两个按钮并没有那么的关注，只要你将鼠标放到这四个按钮上其实就明白了但是还有在这里简单说一下，从左到右一次为：continue，step over，step into，step out</li></ol><ul><li>第一个，<code>continue</code> 按钮，会取消程序的暂停，允许程序正常执行 (要么一直执行下去，要么到达下一个断点)。在 LLDB 中，你可以使用 <code>process continue</code> 命令来达到同样的效果，它的别名为 <code>continue</code>，或者也可以缩写为 <code>c</code>。</li><li>第二个，<code>step over</code> 按钮，会以黑盒的方式执行一行代码。如果所在这行代码是一个函数调用，那么就<strong>不会</strong>跳进这个函数，而是会执行这个函数，然后继续。LLDB 则可以使用 <code>thread step-over</code>，<code>next</code>，或者 <code>n</code> 命令。</li><li>如果你确实想跳进一个函数调用来调试或者检查程序的执行情况，那就用第三个按钮，<code>step in</code>，或者在LLDB中使用 <code>thread step in</code>，<code>step</code>，或者 <code>s</code> 命令。注意，当前行不是函数调用时，<code>next</code> 和 <code>step</code> 效果是一样的。</li><li>大多数人知道 <code>c</code>，<code>n</code> 和 <code>s</code>，但是其实还有第四个按钮，<code>step out</code>。如果你曾经不小心跳进一个函数，但实际上你想跳过它，常见的反应是重复的运行 <code>n</code> 直到函数返回。其实这种情况，<code>step out</code> 按钮是你的救世主。它会继续执行到下一个返回语句 (直到一个堆栈帧结束) 然后再次停止。</li></ul><ol start="2"><li>再来一发图</li></ol><p><img src="http://upload-images.jianshu.io/upload_images/3297309-783f4267bbcaeafd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>相信大家对于上图中第二个并不陌生，那么在这里也就不叙述了，现在说一下第三个选项：<code>Symbolic Breakpoint</code><br><img src="http://upload-images.jianshu.io/upload_images/3297309-bb5de08266a491e8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>你可以在Symbol选项里面添加例如 <code>-[NSArray objectAtIndex:]</code> 这样的符号断点，这样当这个方法被调用的时候程序就会停止。<br><img src="http://upload-images.jianshu.io/upload_images/3297309-4aa33fab0b58644b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>当然了当程序停止时你也可以自定义一些信息比如打印一些信息或者念一段语音之类的。。。</p><p>同样的对于如下面普通断点其实也有一些比较吸引人的功能：</p><p><img src="http://upload-images.jianshu.io/upload_images/3297309-e9f731ca90019bc4.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>condition里面可以设置触发此断点的条件，ignore选项可以设置前n次运行不触发该断点，Action同样的可以设置触发断点后的一些个操作。<br>此时你可能会发现下面有这么一个选择框：<code>Automatically continue after evaluation actions.</code>，选中它，调试器会运行你所有的命令，然后继续运行。看起来就像没有执行任何断点一样。</p><p>#####4.举个例子<br>1.解决<code>NSLog(@&quot;%@&quot;,string);</code>繁琐的打印log<br>小伙伴们在平时的开发中有没有为了想看某个变量的值而<code>NSLog(@&quot;%@&quot;,string);</code>偶尔一个还好可是项目大了每每运行起来的时候下面就无数个log信息，自己看的也心里烦而且在release版本下还会消耗一本分的性能，所以在调试的时候可以选择为为某个变量添加特定的条件以及Action来观测该变量值的变化。</p><p>2.解决跳过一个函数调用来简化程序的行为</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">if (1 || condition) &#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>对于上面简化判断的方式是可取的然而智者千虑必有一失，在进行判断时如果使用<code>expression</code>命令将条件改为<code>YES</code>或者在复杂的判断中修改为任何你想要的值，无疑是极为方便的</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">-(void)testFunction &#123;</span><br><span class="line">  return;</span><br><span class="line">  &#x2F;&#x2F;已经存在的一些代码</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>比如已经运行起来的程序突然想跳过某个方法，那么就必须像上面那样写然后再重新编译，对于大工程来说编译时间无疑是个漫长的等待，so你或许可以机制的利用<code>thread return</code>来直接返回</p><p>#####5.更新UI<br>有时候为了调试一个简单的布局而来回修改编译，那么漫长的编译时间无疑会浪费掉你宝贵的开发时间，在xcode8以前似乎有这么一个插件可以适时将修改反应在界面上，可惜xcode8以后就没用过了，那么在这里通过LLDB调试器也可以更加炫酷的实现这一功能。<br>前面说过在LLDB中的变量都要在变量名前加上 $ </p><p>1.假如我们要修改一个view的颜色，那么可以通过<code>po</code>命令来获取到你想要你的view的信息(假设给view开辟的内存地址为：0x7f82b2601fd0)<br>首先获取这个view</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(lldb) e id $myView &#x3D; (id)0x7f82b2601fd0</span><br></pre></td></tr></table></figure><p>在调试器中改变这个view的颜色</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(lldb) e (void)[$myView setBackgroundColor:[UIColor redColor]]</span><br></pre></td></tr></table></figure><p>最后刷新UI即可</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(lldb) e (void)[CATransaction flush]</span><br></pre></td></tr></table></figure><p>此时你就可以看到界面上view的颜色被修改为了红色，因为即使你仍然在调试器中，渲染服务实际上是一个另外的进程 (被称作 backboardd)。这就是说即使我们正在调试的内容所在的进程被打断了，backboardd 也还是继续运行着的。</p><p>2.push一个ViewController<br>想象一个以 <code>UINavigationController</code> 为 <code>root ViewController</code> 的应用。你可以通过下面的命令，轻松地获取它：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(lldb) e id $nvc &#x3D; [[[UIApplication sharedApplication] keyWindow] rootViewController]</span><br></pre></td></tr></table></figure><p>然后 push 一个 child view controller或者是已经存在的特定的view controller</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">(lldb) e id $vc &#x3D; [UIViewController new]</span><br><span class="line">(lldb) e (void)[[$vc view] setBackgroundColor:[UIColor yellowColor]]</span><br><span class="line">(lldb) e (void)[$vc setTitle:@&quot;Yay!&quot;]</span><br><span class="line">(lldb) e (void)[$nvc pushViewContoller:$vc animated:YES]</span><br></pre></td></tr></table></figure><p>最后运行下面的命令：</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(lldb) e (void)[CATransaction flush]</span><br></pre></td></tr></table></figure><p>navigation Controller 就会立刻就被 push 到你眼前。</p><p>写了这么多除了让我自己能忘记的时候回来看看同时也希望对有所需要的小伙伴有所帮助！</p><p><a href="https://objccn.io/issue-19-2/" target="_blank" rel="noopener">参考文章：与调试器共舞 - LLDB 的华尔兹</a></p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;对于LLDB调试相信很多开发者都不陌生但是也仅仅停留在下断点看数据的阶段，使用最多的命令也就是po甚至包括我在内的一部分开发者也就会使用这一条命令，因为在平时的开发中这已经能够满足我们的使用要求了，有一次在听唐巧大神的分享会的时候当时大神在LLDB里面进行各种操作简直是亮瞎
+      
+    
+    </summary>
+    
+    
+      <category term="其它总结" scheme="http://yoursite.com/categories/%E5%85%B6%E5%AE%83%E6%80%BB%E7%BB%93/"/>
+    
+    
+      <category term="其它总结" scheme="http://yoursite.com/tags/%E5%85%B6%E5%AE%83%E6%80%BB%E7%BB%93/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>gcc简单命令总结</title>
+    <link href="http://yoursite.com/2021/11/25/%E7%94%9F%E6%88%90:%E5%AF%BC%E5%85%A5jar%E5%8C%85/"/>
+    <id>http://yoursite.com/2021/11/25/%E7%94%9F%E6%88%90:%E5%AF%BC%E5%85%A5jar%E5%8C%85/</id>
+    <published>2021-11-25T07:58:11.512Z</published>
+    <updated>2021-11-25T07:58:34.605Z</updated>
+    
+    <content type="html"><![CDATA[<p>#####一、生成jar包</p><ul><li>1.新建项目将准备要生成jar包的源文件托到项目下的src文件夹下</li><li>2.选中项目右键选择Export<br><img src="https://upload-images.jianshu.io/upload_images/3297309-4fbd9b8c917366b4.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Export"></li><li>3.选择Java-&gt;JAR file -&gt; Next<br><img src="https://upload-images.jianshu.io/upload_images/3297309-e9d527b8667d379f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="next"></li><li>4.完成<br><img src="https://upload-images.jianshu.io/upload_images/3297309-6245d84b3631ba01.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="finish"></li></ul><hr><h5 id="二、导入jar包"><a href="#二、导入jar包" class="headerlink" title="二、导入jar包"></a>二、导入jar包</h5><ul><li>1.新建项目并创建lib <strong>文件夹</strong></li><li>2.将 一 中生成的jar包拖入到刚刚新建的lib文件夹下面</li><li>3.选中工程 -&gt; 右键 -&gt; Build Path -&gt; Configure Build Path<br><img src="https://upload-images.jianshu.io/upload_images/3297309-27cede34005ee471.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Build Path"></li><li>4.选择 Libraries -&gt; Add External JARs<br><img src="https://upload-images.jianshu.io/upload_images/3297309-5b7042b76c4621b1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="Add JARs"></li><li>5.选择你刚刚生成jar包的目录 -&gt; Apply and Close</li><li>6.至此jar包导入完毕<br><img src="https://upload-images.jianshu.io/upload_images/3297309-b7e06b44825ae39c.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="complete"></li></ul>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;#####一、生成jar包&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;1.新建项目将准备要生成jar包的源文件托到项目下的src文件夹下&lt;/li&gt;
+&lt;li&gt;2.选中项目右键选择Export&lt;br&gt;&lt;img src=&quot;https://upload-images.jianshu.io/uplo
+      
+    
+    </summary>
+    
+    
+      <category term="其它总结" scheme="http://yoursite.com/categories/%E5%85%B6%E5%AE%83%E6%80%BB%E7%BB%93/"/>
+    
+    
+      <category term="其它总结" scheme="http://yoursite.com/tags/%E5%85%B6%E5%AE%83%E6%80%BB%E7%BB%93/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>gcc简单命令总结</title>
+    <link href="http://yoursite.com/2021/11/25/gcc%E7%AE%80%E5%8D%95%E5%91%BD%E4%BB%A4%E6%80%BB%E7%BB%93/"/>
+    <id>http://yoursite.com/2021/11/25/gcc%E7%AE%80%E5%8D%95%E5%91%BD%E4%BB%A4%E6%80%BB%E7%BB%93/</id>
+    <published>2021-11-25T07:56:23.557Z</published>
+    <updated>2021-11-25T07:56:47.744Z</updated>
+    
+    <content type="html"><![CDATA[<p>下面这段代码将围绕整个文章</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#include&lt;stdio.h&gt;</span><br><span class="line">int main(void)&#123;</span><br><span class="line">  printf(&quot;\n Gcc sample command \n&quot;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>1.指定输出可执行文件的名字<br>使用最基本的gcc编译格式</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc main.c</span><br></pre></td></tr></table></figure><p>执行完上面这条命令会在当前目录下输出一个名为a.out的可执行文件。<br>使用<code>-o</code>可指定输出的可执行文件的名称</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc main.c -o main</span><br></pre></td></tr></table></figure><p>执行完上面语句会在当前目录下输出一个名为main的可执行文件。</p><hr><p>2.让所有编译警告都显示出来<br>编译一段带警告的代码如下</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#include&lt;stdio.h&gt;</span><br><span class="line">int main(void)&#123;</span><br><span class="line">  int a;</span><br><span class="line">  printf(&quot;%d&quot;,a);</span><br><span class="line">  return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>执行 <code>gcc -Wall main.c -o main</code>会得到未初始化变量的警告</p><hr><p>3.指定 -E编译选项使得只输出预编译结果</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -E main.c &gt; main.i</span><br></pre></td></tr></table></figure><p>上面这条gcc编译命令会将输出重定向到输出文件当中。上面的例子中，mian.i文件中的内容就是执行-E选项gcc命令的结果。</p><hr><p>4.通过编译选项 -S输出汇编代码</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -S main.c &gt; main.s</span><br></pre></td></tr></table></figure><p>main.s会包含main.c的汇编代码</p><hr><p>5.指定 -C输出编译后的代码</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -C main.c</span><br></pre></td></tr></table></figure><p>执行上面这条代码会输出mian.o文件包含机器指令代码或者编译后的代码</p><hr><p>总结一下：<br>1.简单编译</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc main.c -o main</span><br></pre></td></tr></table></figure><p>实质上上述编译过程是分为4个阶段的，即预处理、编译、汇编、连接<br>2.多个程序文件的编译</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">gcc -c main1.c -o main1.o</span><br><span class="line">gcc -c main2.c -o main2.o</span><br><span class="line">gcc main1.o mian2.o -o main</span><br></pre></td></tr></table></figure><p>参考链接：<a href="http://www.cnblogs.com/ggjucheng/archive/2011/12/14/2287738.html" target="_blank" rel="noopener">Linux GCC常用命令</a><br><a href="http://blog.csdn.net/typename/article/details/8170213" target="_blank" rel="noopener">15个常用的gcc 命令选项</a></p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;下面这段代码将围绕整个文章&lt;/p&gt;
+&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;
+      
+    
+    </summary>
+    
+    
+      <category term="其它总结" scheme="http://yoursite.com/categories/%E5%85%B6%E5%AE%83%E6%80%BB%E7%BB%93/"/>
+    
+    
+      <category term="其它总结" scheme="http://yoursite.com/tags/%E5%85%B6%E5%AE%83%E6%80%BB%E7%BB%93/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>load方法和initialize方法</title>
+    <link href="http://yoursite.com/2021/11/25/load%E6%96%B9%E6%B3%95%E5%92%8Cinitialize%E6%96%B9%E6%B3%95/"/>
+    <id>http://yoursite.com/2021/11/25/load%E6%96%B9%E6%B3%95%E5%92%8Cinitialize%E6%96%B9%E6%B3%95/</id>
+    <published>2021-11-25T07:49:52.904Z</published>
+    <updated>2021-11-25T07:53:29.171Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="load"><a href="#load" class="headerlink" title="load"></a>load</h3><p>在联想到viewDidLoad等方法时很容易在内心中萌生一种错误的想法，在参考了1个帖子后终于对load方法有了一个大概的理解</p><p>1.load函数的加载时机</p><blockquote><p>简单来说load方法是在这个文件被程序装载时调用，因此load方法是在main方法调用前调用</p></blockquote><p>2.load方法调用的顺序</p><blockquote><p>superClass -&gt; class -&gt; category</p></blockquote><p>3.load方法的作用和使用场景</p><blockquote><p>由于load的调用时机比较早，通常是在App启动加载的时候开始，这时候并不能保证所有的类都被加载完成并且可以使用。并且load加载自身也存在不确定性，因为在有依赖关系的两个库中，被依赖的类的load方法会先调用，但是在一个库之内调用的顺序是不确定的。除此之外，load方法是线程安全的，因为内部实现加上了锁，但是也带来了一定的性能开销，所以不适合处理很复杂的事情。<strong>一般，会在load方法实现Method Swizzle(方法交换实现)。</strong></p></blockquote><hr><p><strong>load方法是直接使用函数指针调用，也就是走C语言函数调用的流程，不是发送消息，并不会走消息转发的流程，也就是说，如果一个类实现了load函数就会调用，如果没有实现也不会调用该类的父类load函数实现，如果父类实现了load函数的话。category调用load方法也是一样的道理。</strong></p><h3 id="initialize"><a href="#initialize" class="headerlink" title="initialize"></a>initialize</h3><p>1.initialize函数的加载时机</p><blockquote><p>这个函数是懒加载，只有当类接收了第一个消息的时候才会调用initialize函数，否则一直不会调用。</p></blockquote><p>2.initialize函数的调用顺序</p><blockquote><p>initialize函数的调用顺序为：superClass -&gt; class。这里没有分类，因为一个类的initialize函数只会调用一次，如果需要实现独立的class和category的初始化就需要实现load函数。还需要注意的一点就是，如果subClass没有实现initialize函数，则父类的initialize函数会被调用两次<br>由于initialize函数可能会被调用多次，所以，如果想保证initialize函数只被调用一次，苹果建议这样做：</p></blockquote><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">+(void)initialize &#123;</span><br><span class="line">  if (self &#x3D;&#x3D; [className self]) &#123; &#x2F;&#x2F; ... do the initialization ... &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>3.initialize函数的使用场景</p><blockquote><p>initialize是线程安全的，有可能阻塞线程，所以，initialize函数应该限制做一些简单，不复杂的类初始化的前期准备工作。<br>initialize函数的工作相当简单，就是发送消息，这是和load函数实现不一样的地方，load函数的调用直接是函数指针的调用，而initialize函数是消息的转发。所以，class的子类就算没有实现initialize函数，也会调用父类的initialize函数，如果子类实现了initialize函数，则子类不会调用父类的initialize函数。</p></blockquote><p>###总结</p><blockquote><p>1.load在被添加到runtime的时候加载，initialize是类第一次收到消息的时候被加载，load是在main函数之前，initialize是在main函数之后。</p></blockquote><blockquote><p>2.load方法的调用顺序是：superClass -&gt; class -&gt; category；initialize方法的调用顺序是：superClass -&gt; class。都不需要显示调用父类的方法，系统会自动调用，load方法是函数指针调用，initialize是发送消息。子类如果没有实现load函数，子类是不会调用父类的load函数的，但是子类没有实现initialize函数，则会调用父类的initialize函数。</p></blockquote><blockquote><p>3.load和initialize内部实现都加了线程锁，是线程安全的，因此，这两个函数应该做一些简单的工作，不适合复杂的工作。</p></blockquote><blockquote><p>4.load函数通常用来进行Method Swizzle，initialize函数则通常初始化一些全局变量，静态变量。</p></blockquote><p>参考：<a href="http://www.jianshu.com/p/66b366ed850e" target="_blank" rel="noopener">iOS基础(九) - load和initialize的实现原理</a></p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h3 id=&quot;load&quot;&gt;&lt;a href=&quot;#load&quot; class=&quot;headerlink&quot; title=&quot;load&quot;&gt;&lt;/a&gt;load&lt;/h3&gt;&lt;p&gt;在联想到viewDidLoad等方法时很容易在内心中萌生一种错误的想法，在参考了1个帖子后终于对load方法有了一个大概的理
+      
+    
+    </summary>
+    
+    
+      <category term="Objective-C" scheme="http://yoursite.com/categories/Objective-C/"/>
+    
+    
+      <category term="Objective-C" scheme="http://yoursite.com/tags/Objective-C/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>iOS webview懒加载html数据</title>
+    <link href="http://yoursite.com/2021/11/25/webview%E6%87%92%E5%8A%A0%E8%BD%BDhtml%E6%95%B0%E6%8D%AE/"/>
+    <id>http://yoursite.com/2021/11/25/webview%E6%87%92%E5%8A%A0%E8%BD%BDhtml%E6%95%B0%E6%8D%AE/</id>
+    <published>2021-11-25T07:27:53.887Z</published>
+    <updated>2021-11-25T07:46:59.157Z</updated>
+    
+    <content type="html"><![CDATA[<p>不知道大家有没有遇到这样的问题，就是后台返回的数据里面有一段html格式的数据里面包含文字和众多的图片，然后在客户端通过webView加载这段数据，但是当图片太多的时候轻则会特别慢重则会导致占用太多内存导致手机内存不足退出app，显然不能满足公司产品的要求。</p><p>为了解决这个问题真是搓破了脑瓜最后还是没有解决，无意中看到了一个帖子关于懒加载html数据中的图片，但是众说纷纭好多关于这种问题的描述，没有个能参考的帖子，所以今天在这里坐下来写这个帖子希望能帮助和我一样遇到此类问题的程序员。</p><p>关于解决这个问题需要准备一下一些东西：</p><ol><li>jquery-3.1.1.js  – 官网下载地址<a href="http://jquery.com/download/" target="_blank" rel="noopener"> jquery库官方下载</a></li><li>jquery.lazyload.js  – <a href="http://plugins.jquery.com/lazyload/" target="_blank" rel="noopener">官网下载地址</a></li><li>基本掌握js语法（当然不会也没关系）</li></ol><p>废话不多说了，接下来上代码</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;添加到约束的html字符串(为了简单约束已去掉)，content为返回的html格式字符串</span><br><span class="line"></span><br><span class="line">NSString*str &#x3D; [NSStringstringWithFormat:@&quot;%@&quot;content];</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;将html字符串中的src替换为data-original否则jquery不会实现懒加载******</span><br><span class="line"></span><br><span class="line">NSString*htmlReplaceString &#x3D; [strstringByReplacingOccurrencesOfString:@&quot;src&quot;withString:@&quot;data-original&quot;];</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;获取temp文件的路径（temp文件为实现懒加载的js核心代码）</span><br><span class="line"></span><br><span class="line">NSString*tempPath &#x3D; [[NSBundlemainBundle]pathForResource:@&quot;temp&quot;ofType:@&quot;html&quot;];</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;加载temp内容为字符串</span><br><span class="line"></span><br><span class="line">NSString*tempHtml &#x3D; [NSStringstringWithContentsOfFile:tempPathencoding:NSUTF8StringEncodingerror:nil];</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;替换temp内的占位符&#123;&#123;Content_holder&#125;&#125;为需要加载的HTML代码</span><br><span class="line"></span><br><span class="line">tempHtml &#x3D; [tempHtmlstringByReplacingOccurrencesOfString:@&quot;&#123;&#123;Content_holder&#125;&#125;&quot;withString:htmlReplaceString];</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;Temp目录下的js文件(temp文件和jquery库)在根路径，因此需要在加载HTMLString时指定根路径</span><br><span class="line"></span><br><span class="line">NSString*basePath &#x3D; [[NSBundlemainBundle]bundlePath];</span><br><span class="line"></span><br><span class="line">NSURL*baseURL &#x3D; [NSURLfileURLWithPath:basePath];</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;加载HTMLString</span><br><span class="line"></span><br><span class="line">[_webViewloadHTMLString:tempHtmlbaseURL:baseURL];</span><br></pre></td></tr></table></figure><p>以上代码加上本地的temp文件就可以实现一个html数据的懒加载，但是有时候我们不单单是在一个界面只加载一个webview，比如说在tableview的头视图上加载一个webview，但是webview懒加载时通过 </p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[webViewstringByEvaluatingJavaScriptFromString:@&quot;document.body.offsetHeight;&quot;]</span><br></pre></td></tr></table></figure><p>计算出来的高度是不包含懒加载的图片的高度的，如果图片有占位图那么这里计算出来的高度只是文字的高度与占位图的高度的和，因此就需要在图片动态加载的过程中动态的来计算webview的高度。</p><p>在这里通过给webview里面的scrollview的contentSize设置一个监听</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[_webView.scrollViewaddObserver:selfforKeyPath:@&quot;contentSize&quot;options:NSKeyValueObservingOptionNewcontext:nil];</span><br></pre></td></tr></table></figure><p>当图片动态的加载出来以后contentSize就会改变因此就会被监听到来重新给webview设置高度。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">- (void)observeValueForKeyPath:(NSString*)keyPath ofObject:(id)object change:(NSDictionary*)change context:(void*)context</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">if([keyPathisEqualToString:@&quot;contentSize&quot;]) &#123;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;检测contentSize的实时的高度</span><br><span class="line"></span><br><span class="line">webViewHeight&#x3D;_webView.scrollView.contentSize.height;</span><br><span class="line"></span><br><span class="line">if(_webView.height&#x3D;&#x3D;webViewHeight) &#123;&#x2F;&#x2F;实时高度和上次webView的高度作比较，如果相等了说明图片全部加载完成，否则没有则需要重新给webview高度赋值并且刷新tableview</span><br><span class="line"></span><br><span class="line">return;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">dispatch_async(dispatch_get_main_queue(), ^&#123;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;重新将webview的高度设置为scrollview的内容高度</span><br><span class="line"></span><br><span class="line">_webView.frame&#x3D;CGRectMake(10,60,MainScreenWidth-10,webViewHeight+30);</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;重新给headerView的frame赋值</span><br><span class="line"></span><br><span class="line">_upView.frame&#x3D;CGRectMake(0,0,UI_SCREEN_WIDTH,60+webViewHeight+90+70);</span><br><span class="line"></span><br><span class="line">_tableView.tableHeaderView&#x3D;_upView;</span><br><span class="line"></span><br><span class="line">[_tableViewreloadData];</span><br><span class="line"></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>这里遇到一个小坑：当占位图的高度比实际图片的高度高的时候webview的高度还是文字和占位图的高度的和，就会在底部留出一个空白区域，目前还没有好的方法解决只能用高度比较小的占位图😋    如果大家有好的解决办法欢迎积极分享。</p><p>demo下载地址  <a href="https://github.com/ChuGuangFu/MyFirst" target="_blank" rel="noopener">demo传送门</a></p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;不知道大家有没有遇到这样的问题，就是后台返回的数据里面有一段html格式的数据里面包含文字和众多的图片，然后在客户端通过webView加载这段数据，但是当图片太多的时候轻则会特别慢重则会导致占用太多内存导致手机内存不足退出app，显然不能满足公司产品的要求。&lt;/p&gt;
+&lt;p&gt;
+      
+    
+    </summary>
+    
+    
+      <category term="Objective-C" scheme="http://yoursite.com/categories/Objective-C/"/>
+    
+    
+      <category term="Objective-C" scheme="http://yoursite.com/tags/Objective-C/"/>
+    
+  </entry>
   
   <entry>
     <title>swift高阶函数</title>
@@ -123,35 +550,6 @@
     
     
       <category term="Swift" scheme="http://yoursite.com/tags/Swift/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>日常小记文章</title>
-    <link href="http://yoursite.com/2020/01/14/%E6%AF%8F%E6%97%A5%E6%80%BB%E7%BB%93/"/>
-    <id>http://yoursite.com/2020/01/14/%E6%AF%8F%E6%97%A5%E6%80%BB%E7%BB%93/</id>
-    <published>2020-01-14T08:04:53.232Z</published>
-    <updated>2020-01-16T07:50:42.597Z</updated>
-    
-    <content type="html"><![CDATA[<blockquote><p>日常小记第一篇</p></blockquote>]]></content>
-    
-    <summary type="html">
-    
-      
-      
-        &lt;blockquote&gt;
-&lt;p&gt;日常小记第一篇&lt;/p&gt;
-&lt;/blockquote&gt;
-
-      
-    
-    </summary>
-    
-    
-      <category term="日常小记" scheme="http://yoursite.com/categories/%E6%97%A5%E5%B8%B8%E5%B0%8F%E8%AE%B0/"/>
-    
-    
-      <category term="日常小记" scheme="http://yoursite.com/tags/%E6%97%A5%E5%B8%B8%E5%B0%8F%E8%AE%B0/"/>
     
   </entry>
   

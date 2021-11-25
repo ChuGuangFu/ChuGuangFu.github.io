@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="其它总结," />
+
+
+
+
+  
+
+
+  <link rel="alternate" href="/atom.xml" title="初光夫的博客" type="application/atom+xml" />
+
+
+
+
+
+
+<meta name="description" content="对于LLDB调试相信很多开发者都不陌生但是也仅仅停留在下断点看数据的阶段，使用最多的命令也就是po甚至包括我在内的一部分开发者也就会使用这一条命令，因为在平时的开发中这已经能够满足我们的使用要求了，有一次在听唐巧大神的分享会的时候当时大神在LLDB里面进行各种操作简直是亮瞎了我的双眼这不才在晚上搜索了一下这个东西才发现原来这里暗藏玄机，其实网上的帖子都已经讲的很清晰了可是为什么自己还要自己写一遍呢">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LLDB调试器简介">
+<meta property="og:url" content="http://yoursite.com/2021/11/25/LLDB%E8%B0%83%E8%AF%95%E5%99%A8%E7%AE%80%E4%BB%8B/index.html">
+<meta property="og:site_name" content="初光夫的博客">
+<meta property="og:description" content="对于LLDB调试相信很多开发者都不陌生但是也仅仅停留在下断点看数据的阶段，使用最多的命令也就是po甚至包括我在内的一部分开发者也就会使用这一条命令，因为在平时的开发中这已经能够满足我们的使用要求了，有一次在听唐巧大神的分享会的时候当时大神在LLDB里面进行各种操作简直是亮瞎了我的双眼这不才在晚上搜索了一下这个东西才发现原来这里暗藏玄机，其实网上的帖子都已经讲的很清晰了可是为什么自己还要自己写一遍呢">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/3297309-ee0c8a23a5bf740e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/3297309-ad1601b22932954e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/3297309-0676092a9ab07d12.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/3297309-ff8e21530ec64c9a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/3297309-97c65603179afadc.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/3297309-d86aeb5d9b683852.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/3297309-c1a735d55f301116.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/3297309-5de04fa6e17b2672.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/3297309-1059f8ce08903928.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/3297309-783f4267bbcaeafd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/3297309-bb5de08266a491e8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/3297309-4aa33fab0b58644b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/3297309-e9f731ca90019bc4.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta property="article:published_time" content="2021-11-25T08:00:38.756Z">
+<meta property="article:modified_time" content="2021-11-25T08:00:59.170Z">
+<meta property="article:author" content="初光夫">
+<meta property="article:tag" content="其它总结">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/3297309-ee0c8a23a5bf740e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"always","offset":12,"b2t":false,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2021/11/25/LLDB调试器简介/"/>
+
+
+
+
+
+  <title>LLDB调试器简介 | 初光夫的博客</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">初光夫的博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">无论刮风还是下雨，太阳照常升起</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-swift">
+          <a href="/categories/swift" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            Swift
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-objective-c">
+          <a href="/categories/Objective-C" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            Objective-C
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-日常小记">
+          <a href="/categories/%E6%97%A5%E5%B8%B8%E5%B0%8F%E8%AE%B0" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            日常小记
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-其它总结">
+          <a href="/categories/%E5%85%B6%E5%AE%83%E6%80%BB%E7%BB%93" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            其它总结
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/11/25/LLDB%E8%B0%83%E8%AF%95%E5%99%A8%E7%AE%80%E4%BB%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="初光夫">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatarHeader.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="初光夫的博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">LLDB调试器简介</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-11-25T16:00:38+08:00">
+                2021-11-25
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%85%B6%E5%AE%83%E6%80%BB%E7%BB%93/" itemprop="url" rel="index">
+                    <span itemprop="name">其它总结</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>对于LLDB调试相信很多开发者都不陌生但是也仅仅停留在下断点看数据的阶段，使用最多的命令也就是po甚至包括我在内的一部分开发者也就会使用这一条命令，因为在平时的开发中这已经能够满足我们的使用要求了，有一次在听唐巧大神的分享会的时候当时大神在LLDB里面进行各种操作简直是亮瞎了我的双眼这不才在晚上搜索了一下这个东西才发现原来这里暗藏玄机，其实网上的帖子都已经讲的很清晰了可是为什么自己还要自己写一遍呢？说白了就是想着自己再加深一遍印象以后再回来看的时候能快速的找到地方。<br>下面来切入正题：<br>#####1.LLDB简介</p>
+<blockquote>
+<p><a href="http://lldb.llvm.org/" target="_blank" rel="noopener">LLDB</a> 是一个有着 REPL 的特性和 C++ ,Python 插件的<a href="http://lldb.llvm.org/source.html" target="_blank" rel="noopener">开源</a>调试器。LLDB 绑定在 Xcode 内部，存在于主窗口底部的控制台中。调试器允许你在程序运行的特定时暂停它，你可以查看变量的值，执行自定的指令，并且按照你所认为合适的步骤来操作程序的进展。<br>你以前有可能已经使用过调试器，即使只是在 Xcode 的界面上加一些断点。但是通过一些小的技巧，你就可以做一些非常酷的事情。<a href="http://lldb.llvm.org/lldb-gdb.html" target="_blank" rel="noopener">GDB to LLDB</a> 参考是一个非常好的调试器可用命令的总览。你也可以安装 <a href="https://github.com/facebook/chisel" target="_blank" rel="noopener">Chisel</a>，它是一个开源的 LLDB 插件合辑，这会使调试变得更加有趣。<br>来自 <a href="https://objccn.io/issue-19-2/" target="_blank" rel="noopener">与调试器共舞 - LLDB 的华尔兹</a></p>
+</blockquote>
+<h5 id="2-简单命令的讲解"><a href="#2-简单命令的讲解" class="headerlink" title="2. 简单命令的讲解"></a>2. 简单命令的讲解</h5><p>先来一段代码片段，下面的讲解大都是基于此</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/3297309-ee0c8a23a5bf740e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="片段"></p>
+<ul>
+<li>help<br>见文识意，可以通过输入<code>help</code>命令来了解全部的lldb的指令也可以输入<code>help &lt;command&gt;</code>来获取某一个特定指令的详细注解</li>
+<li>print  简写为 p<br><img src="http://upload-images.jianshu.io/upload_images/3297309-ad1601b22932954e.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="print命令"><br> 细心的人可能会注意到在输出结果中有<code>$0</code>，任何以美元符开头的东西都是存在于 LLDB 的命名空间的，试试<code>print $0 + 7</code>，你会看到 <code>106</code>，实际上<code>$0</code>是指向这个结果的</li>
+<li>po<br><img src="http://upload-images.jianshu.io/upload_images/3297309-0676092a9ab07d12.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="po指令"><br>相对<code>print</code>指令<code>po</code>指令仅仅是打印变量的<code>description</code>方法</li>
+<li>breakpoint<br>a 给某个文件的某一行下断点<code>breakpoint set --file ViewController.m --line 20</code>或者简写为<code>breakpoint set -f ViewControlloer.m -l 20</code>断点成功后的提示：<br><img src="http://upload-images.jianshu.io/upload_images/3297309-ff8e21530ec64c9a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="设置某一行的断点"><br>b 给某个函数下断点<code>breakpoint set -n -[ViewController testFunction]</code><br>c 给指定的动态库中指定的方法添加断点<code>breakpoint set -s libate.dylib -n freePartitionTables2D</code><br>d 查看断点的列表<code>breakpoint list</code><br>e 删除断点<code>breakpoint delete</code></li>
+<li>watchPoint - 观测某个变量值的具体变化<br>比如我们要观测变量<code>i</code>的变化<code>watchpoint set variable i</code>，只要被检测的变量值发生改变即会被检测到。成功检测后的结果如下：<br><img src="http://upload-images.jianshu.io/upload_images/3297309-97c65603179afadc.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="成功检测某个变量后的结果"><br>也可以在这里检测：<br><img src="http://upload-images.jianshu.io/upload_images/3297309-d86aeb5d9b683852.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>甚至可以设置变量<code>i</code>触发的条件：<code>watchpoint modify -c &#39;(i=40)&#39;</code>当<code>i</code>的值变化到40时触发<br>我们可以看一下具体断点的参数，使用<code>watchpoint list</code>命令<br><img src="http://upload-images.jianshu.io/upload_images/3297309-c1a735d55f301116.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>此时可以看到观察的变量的地址、声明变量的代码所在的行数、当前变量的值以及触发所需要的条件</li>
+<li>image<br>该命令用于寻址，假如程序由于某个原因崩溃掉了然而崩溃并没有给你定位到具体的信息而是直接怵在了<code>main</code>函数里边，此时<code>image</code>指令将极大的帮助你。使用指令：<code>image lookup --address</code>，在这里笔者举个简单的数组越界的定位例子：<br><img src="http://upload-images.jianshu.io/upload_images/3297309-5de04fa6e17b2672.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>不要问我崩溃地址从哪看这个这个应该能找到吧😑 ，行数都已经显示出来了还有什么解决不了的呢</li>
+<li>thread<br>a <code>thread list</code>查看当前进程状态，前面带有 * 号的那条线程代表的就是当前线程<br>b <code>thread backtrace</code>作用是打印出当前线程的堆栈信息。当程序发生了crash后，我们可以用该命令打印出发生crash的当前的程序堆栈，查询出发生crash的调用路径。由于比较常用，所以LLDB直接给它一个特殊的<code>bt</code>别名。<br>c <code>thread</code>另一个比较常用的用法是 <code>thread return</code>，调试的时候，我们希望在当前执行的程序堆栈直接返回一个自己想要的值，可以执行该命令直接返回。<code>thread return</code>带有一个可选的返回值。</li>
+<li>frame<br><code>frame</code>即是帧，其实就是当前的程序堆栈，我们使用<code>bt</code>打印出来的是当前线程的<code>frame</code>，而我们关心的是当前堆栈的变量值，我们可以使用<code>frame variable</code>获取全部变量值。也可以通过<code>frame variable self-&gt; count</code>来获取某个特定的变量的值。</li>
+<li>expression - (e)<br>个人感觉这条命令比较强大，因为什么呢？马上就说。因为它能改变一个变量在调试器以及程序当中的值，而当程序继续执行时会使用改变过后的值。<br>命令的使用方法：<code>expression count = 5</code>，从此以后变量<code>count</code>的值就变成了5</li>
+</ul>
+<p>当然了有人会有这样的疑问：我打个断点直接利用xcode就能打上何必要用这么复杂难记得命令行呢？其实在实际开发中除非遇到难以解决的问题会用到lldb的命令行以外一般确实用不到，就比如说要为<code>.a</code>文件里的某个方法里打断点，此时命令行可能就是你的救星了。然而xcode其实已经在自己的GUI界面里面为我们实现了一部分的命令只是在平时开发中并没有注意到接下来就为了我方便记忆的原则来简单写一下。</p>
+<h5 id="3-XcodeGUI界面介绍"><a href="#3-XcodeGUI界面介绍" class="headerlink" title="3.XcodeGUI界面介绍"></a>3.XcodeGUI界面介绍</h5><ol>
+<li>先来一发图<br><img src="http://upload-images.jianshu.io/upload_images/3297309-1059f8ce08903928.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>相信大家看着这张图并不陌生，但是呢可能会对后面的两个按钮并没有那么的关注，只要你将鼠标放到这四个按钮上其实就明白了但是还有在这里简单说一下，从左到右一次为：continue，step over，step into，step out</li>
+</ol>
+<ul>
+<li>第一个，<code>continue</code> 按钮，会取消程序的暂停，允许程序正常执行 (要么一直执行下去，要么到达下一个断点)。在 LLDB 中，你可以使用 <code>process continue</code> 命令来达到同样的效果，它的别名为 <code>continue</code>，或者也可以缩写为 <code>c</code>。</li>
+<li>第二个，<code>step over</code> 按钮，会以黑盒的方式执行一行代码。如果所在这行代码是一个函数调用，那么就<strong>不会</strong>跳进这个函数，而是会执行这个函数，然后继续。LLDB 则可以使用 <code>thread step-over</code>，<code>next</code>，或者 <code>n</code> 命令。</li>
+<li>如果你确实想跳进一个函数调用来调试或者检查程序的执行情况，那就用第三个按钮，<code>step in</code>，或者在LLDB中使用 <code>thread step in</code>，<code>step</code>，或者 <code>s</code> 命令。注意，当前行不是函数调用时，<code>next</code> 和 <code>step</code> 效果是一样的。</li>
+<li>大多数人知道 <code>c</code>，<code>n</code> 和 <code>s</code>，但是其实还有第四个按钮，<code>step out</code>。如果你曾经不小心跳进一个函数，但实际上你想跳过它，常见的反应是重复的运行 <code>n</code> 直到函数返回。其实这种情况，<code>step out</code> 按钮是你的救世主。它会继续执行到下一个返回语句 (直到一个堆栈帧结束) 然后再次停止。</li>
+</ul>
+<ol start="2">
+<li>再来一发图</li>
+</ol>
+<p><img src="http://upload-images.jianshu.io/upload_images/3297309-783f4267bbcaeafd.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>相信大家对于上图中第二个并不陌生，那么在这里也就不叙述了，现在说一下第三个选项：<code>Symbolic Breakpoint</code><br><img src="http://upload-images.jianshu.io/upload_images/3297309-bb5de08266a491e8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>你可以在Symbol选项里面添加例如 <code>-[NSArray objectAtIndex:]</code> 这样的符号断点，这样当这个方法被调用的时候程序就会停止。<br><img src="http://upload-images.jianshu.io/upload_images/3297309-4aa33fab0b58644b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>当然了当程序停止时你也可以自定义一些信息比如打印一些信息或者念一段语音之类的。。。</p>
+<p>同样的对于如下面普通断点其实也有一些比较吸引人的功能：</p>
+<p><img src="http://upload-images.jianshu.io/upload_images/3297309-e9f731ca90019bc4.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>condition里面可以设置触发此断点的条件，ignore选项可以设置前n次运行不触发该断点，Action同样的可以设置触发断点后的一些个操作。<br>此时你可能会发现下面有这么一个选择框：<code>Automatically continue after evaluation actions.</code>，选中它，调试器会运行你所有的命令，然后继续运行。看起来就像没有执行任何断点一样。</p>
+<p>#####4.举个例子<br>1.解决<code>NSLog(@&quot;%@&quot;,string);</code>繁琐的打印log<br>小伙伴们在平时的开发中有没有为了想看某个变量的值而<code>NSLog(@&quot;%@&quot;,string);</code>偶尔一个还好可是项目大了每每运行起来的时候下面就无数个log信息，自己看的也心里烦而且在release版本下还会消耗一本分的性能，所以在调试的时候可以选择为为某个变量添加特定的条件以及Action来观测该变量值的变化。</p>
+<p>2.解决跳过一个函数调用来简化程序的行为</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">if (1 || condition) &#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于上面简化判断的方式是可取的然而智者千虑必有一失，在进行判断时如果使用<code>expression</code>命令将条件改为<code>YES</code>或者在复杂的判断中修改为任何你想要的值，无疑是极为方便的</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">-(void)testFunction &#123;</span><br><span class="line">  return;</span><br><span class="line">  &#x2F;&#x2F;已经存在的一些代码</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>比如已经运行起来的程序突然想跳过某个方法，那么就必须像上面那样写然后再重新编译，对于大工程来说编译时间无疑是个漫长的等待，so你或许可以机制的利用<code>thread return</code>来直接返回</p>
+<p>#####5.更新UI<br>有时候为了调试一个简单的布局而来回修改编译，那么漫长的编译时间无疑会浪费掉你宝贵的开发时间，在xcode8以前似乎有这么一个插件可以适时将修改反应在界面上，可惜xcode8以后就没用过了，那么在这里通过LLDB调试器也可以更加炫酷的实现这一功能。<br>前面说过在LLDB中的变量都要在变量名前加上 $ </p>
+<p>1.假如我们要修改一个view的颜色，那么可以通过<code>po</code>命令来获取到你想要你的view的信息(假设给view开辟的内存地址为：0x7f82b2601fd0)<br>首先获取这个view</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(lldb) e id $myView &#x3D; (id)0x7f82b2601fd0</span><br></pre></td></tr></table></figure>
+<p>在调试器中改变这个view的颜色</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(lldb) e (void)[$myView setBackgroundColor:[UIColor redColor]]</span><br></pre></td></tr></table></figure>
+<p>最后刷新UI即可</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(lldb) e (void)[CATransaction flush]</span><br></pre></td></tr></table></figure>
+<p>此时你就可以看到界面上view的颜色被修改为了红色，因为即使你仍然在调试器中，渲染服务实际上是一个另外的进程 (被称作 backboardd)。这就是说即使我们正在调试的内容所在的进程被打断了，backboardd 也还是继续运行着的。</p>
+<p>2.push一个ViewController<br>想象一个以 <code>UINavigationController</code> 为 <code>root ViewController</code> 的应用。你可以通过下面的命令，轻松地获取它：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(lldb) e id $nvc &#x3D; [[[UIApplication sharedApplication] keyWindow] rootViewController]</span><br></pre></td></tr></table></figure>
+<p>然后 push 一个 child view controller或者是已经存在的特定的view controller</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">(lldb) e id $vc &#x3D; [UIViewController new]</span><br><span class="line">(lldb) e (void)[[$vc view] setBackgroundColor:[UIColor yellowColor]]</span><br><span class="line">(lldb) e (void)[$vc setTitle:@&quot;Yay!&quot;]</span><br><span class="line">(lldb) e (void)[$nvc pushViewContoller:$vc animated:YES]</span><br></pre></td></tr></table></figure>
+<p>最后运行下面的命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(lldb) e (void)[CATransaction flush]</span><br></pre></td></tr></table></figure>
+<p>navigation Controller 就会立刻就被 push 到你眼前。</p>
+<p>写了这么多除了让我自己能忘记的时候回来看看同时也希望对有所需要的小伙伴有所帮助！</p>
+<p><a href="https://objccn.io/issue-19-2/" target="_blank" rel="noopener">参考文章：与调试器共舞 - LLDB 的华尔兹</a></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E5%85%B6%E5%AE%83%E6%80%BB%E7%BB%93/" rel="tag"># 其它总结</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/11/25/%E7%94%9F%E6%88%90:%E5%AF%BC%E5%85%A5jar%E5%8C%85/" rel="next" title="gcc简单命令总结">
+                <i class="fa fa-chevron-left"></i> gcc简单命令总结
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/11/25/%E6%96%AD%E8%A8%80/" rel="prev" title="断言">
+                断言 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatarHeader.png"
+                alt="初光夫" />
+            
+              <p class="site-author-name" itemprop="name">初光夫</p>
+              <p class="site-description motion-element" itemprop="description">初光夫</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">21</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/ChuGuangFu" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="https://www.jianshu.com/u/c86325c3ac19" target="_blank" title="简书">
+                      
+                        <i class="fa fa-fw fa-jianshu"></i>简书</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-5"><a class="nav-link" href="#2-简单命令的讲解"><span class="nav-number">1.</span> <span class="nav-text">2. 简单命令的讲解</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-XcodeGUI界面介绍"><span class="nav-number">2.</span> <span class="nav-text">3.XcodeGUI界面介绍</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">初光夫</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+          <span id="scrollpercent"><span>0</span>%</span>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
