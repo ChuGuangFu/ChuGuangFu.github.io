@@ -1,6 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>swift高阶函数</title>
+    <url>/2021/11/24/Swift%E9%AB%98%E9%98%B6%E5%87%BD%E6%95%B0/</url>
+    <content><![CDATA[<h1 id="swift高阶函数"><a href="#swift高阶函数" class="headerlink" title="swift高阶函数"></a>swift高阶函数</h1><h2 id="map"><a href="#map" class="headerlink" title="map"></a>map</h2><p>map接受一个闭包作为参数，作用于数组中的每个元素，闭包返回一个变换后的元素，接着将所有这些变换后的元素组成一个新的数组</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">let cast &#x3D; [&quot;Vivien&quot;, &quot;Marlon&quot;, &quot;Kim&quot;, &quot;Karl&quot;]</span><br><span class="line">let lowercaseNames &#x3D; cast.map &#123; $0.lowercased() &#125;</span><br><span class="line">&#x2F;&#x2F; &#39;lowercaseNames&#39; &#x3D;&#x3D; [&quot;vivien&quot;, &quot;marlon&quot;, &quot;kim&quot;, &quot;karl&quot;]</span><br><span class="line">let letterCounts &#x3D; cast.map &#123; $0.count &#125;</span><br><span class="line">&#x2F;&#x2F; &#39;letterCounts&#39; &#x3D;&#x3D; [6, 6, 3, 4]</span><br></pre></td></tr></table></figure>
+
+<h2 id="compactMap"><a href="#compactMap" class="headerlink" title="compactMap"></a>compactMap</h2><p>解包所有可选选项并丢弃nil值</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; 转化为 [Int?] 因为内部元素可能不符合转化规则</span><br><span class="line">let strings &#x3D; [&quot;1&quot;, &quot;2&quot;, &quot;fish&quot;]</span><br><span class="line">let a &#x3D; strings.map &#123;Int($0)&#125;</span><br><span class="line">let b &#x3D; strings.compactMap &#123;Int($0)&#125;</span><br><span class="line">print(a)</span><br><span class="line">print(b)</span><br><span class="line">&#x2F;&#x2F; [Optional(1), Optional(2), nil]</span><br><span class="line">&#x2F;&#x2F; [1,2]</span><br></pre></td></tr></table></figure>
+
+<h2 id="flatMap"><a href="#flatMap" class="headerlink" title="flatMap"></a>flatMap</h2><p>过滤nil值，降低数组维度，降低可选项维度</p>
+<p>与 map 的区别：</p>
+<ul>
+<li>flatMap 会降低数组维度，过滤nil值，<code>但是每次操作只执行一种功能，优先执行过滤 nil的操作。</code></li>
+</ul>
+<p>嵌套情况见下:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">let arr &#x3D; [[[1,1,1],2],[3,4], nil, nil]</span><br><span class="line">&#x2F;&#x2F; 优先处理nil值</span><br><span class="line">let arr1 &#x3D; arr.flatMap&#123; $0 &#125;</span><br><span class="line">let arr2 &#x3D; arr.flatMap&#123; $0 &#125;.flatMap&#123; $0 &#125;</span><br><span class="line">print(arr1, arr2, separator: &quot;\n&quot;)</span><br><span class="line">&#x2F;&#x2F; [[[1, 1, 1], 2], [3, 4]]</span><br><span class="line">&#x2F;&#x2F; [[1, 1, 1], 2, 3, 4]</span><br></pre></td></tr></table></figure>
+
+<p>总结：</p>
+<ul>
+<li>map 和 compactMap 返回的元素不改变原先的类型</li>
+<li>在嵌套 map 的情况下，flatMap 会将 String 降维至 Character</li>
+<li>在不是嵌套 map 的情况下<ul>
+<li>若原序列是 String 序列，不指定类型或指定为[String]：flatMap 将元素处理成 Character</li>
+<li>指定[Any]类型，flatMap 与 map、compactMap 一致，不改变原先类型。</li>
+</ul>
+</li>
+</ul>
+<h3 id="作用于可选对象"><a href="#作用于可选对象" class="headerlink" title="作用于可选对象"></a>作用于可选对象</h3><p>map()方法也存在于可选对象上：如果一个可选类型有值，map会获取这个值，经过map的闭包处理变为另外一个值，如果这个可选类型的值为nil，那么不会执行map闭包，而是直接返回nil</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; 如果name包含字符串，则map()会将解包，将其转换为“ Hi， name包含的字符串”，然后将整个拼接后的字符串放入一个可选对象中并返回以存储在greeting中。</span><br><span class="line">&#x2F;&#x2F; 如果name不包含字符串为nil，map()将直接返回nil给greeting。</span><br><span class="line">let name: String? &#x3D; valueOrNil(id: 97)</span><br><span class="line">let greeting &#x3D; name.map &#123; &quot;Hi, \($0)&quot; &#125;</span><br><span class="line">print(greeting ?? &quot;Unknown user&quot;)</span><br></pre></td></tr></table></figure>
+
+<p>类似的 flatMap() 同样可以作用于可选对象，区别是map闭包不能return nil，而flatmap可以</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">var value: Double? &#x3D; 10</span><br><span class="line">var newValue: Double? &#x3D; value.flatMap &#123; v in</span><br><span class="line">    if v &lt; 5.0 &#123;</span><br><span class="line">        return nil</span><br><span class="line">    &#125;</span><br><span class="line">    return v &#x2F; 5.0</span><br><span class="line">&#125;</span><br><span class="line">&#x2F;&#x2F; newValue is now Optional(2)</span><br><span class="line"></span><br><span class="line">newValue &#x3D; newValue.flatMap &#123; v in</span><br><span class="line">    if v &lt; 5.0 &#123;</span><br><span class="line">        return nil</span><br><span class="line">    &#125;</span><br><span class="line">    return v &#x2F; 5.0</span><br><span class="line">&#125;</span><br><span class="line">&#x2F;&#x2F; now it&#39;s nil</span><br></pre></td></tr></table></figure>
+
+<h3 id="使用场景：替代三目运算符"><a href="#使用场景：替代三目运算符" class="headerlink" title="使用场景：替代三目运算符"></a>使用场景：替代三目运算符</h3><p>一般在使用可选对象时，必须分有值和nil值的情况，运用到三目运算符时肯定会使用强制解包，这样很不优雅。<br>使用 map 代替，如果可选值为 nil，则会直接返回 nil，不会进入后面的闭包。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; 时间操作</span><br><span class="line">var date: NSDate? &#x3D; ...</span><br><span class="line">&#x2F;&#x2F; var formatted: String? &#x3D; date &#x3D;&#x3D; nil ? nil : NSDateFormatter().stringFromDate(date!)</span><br><span class="line">var formatted: String? &#x3D;  date.map(NSDateFormatter().stringFromDate)</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 获取String字面量的值</span><br><span class="line">func ageToString(age: Int?) -&gt; String &#123;</span><br><span class="line">    &#x2F;&#x2F;return age &#x3D;&#x3D; nil ? &quot;Unknown age&quot; : &quot;She is (age!) years old&quot;</span><br><span class="line">    return age.map &#123; &quot;She is ($0) years old&quot; &#125; ?? &quot;Unknown age&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 在数组中找到某项</span><br><span class="line">func find(identifier: String) -&gt; Item? &#123;</span><br><span class="line">    return items.indexOf(&#123;$0.identifier &#x3D;&#x3D; identifier&#125;).map(&#123;items[$0]&#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="filter"><a href="#filter" class="headerlink" title="filter"></a>filter</h2><p>可以对数组中的元素按照某种规则进行一次过滤</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">let numbers &#x3D; [1, 2, 3, 4, 5, 6, 7, 8, 9]</span><br><span class="line">&#x2F;&#x2F;筛选偶数值</span><br><span class="line">let evens &#x3D; numbers.filter&#123;$0 % 2 &#x3D;&#x3D; 0&#125; &#x2F;&#x2F;等同于</span><br><span class="line">let even &#x3D; numbers.filter&#123;(num) -&gt; Bool in</span><br><span class="line">      num % 2 &#x3D;&#x3D; 0</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;筛选奇数值</span><br><span class="line">let odds &#x3D; numbers.filter&#123;$0 % 2 &#x3D;&#x3D; 1&#125; &#x2F;&#x2F;等同于</span><br><span class="line">let odd &#x3D; numbers.filter&#123;(num) -&gt; Bool in</span><br><span class="line">      num % 2 &#x3D;&#x3D; 1</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="reduce（归纳合并成一个元素）"><a href="#reduce（归纳合并成一个元素）" class="headerlink" title="reduce（归纳合并成一个元素）"></a>reduce（归纳合并成一个元素）</h2><ul>
+<li>reduce(initial, combineClosure): 从第一个初始值开始对其进行combineClosure操作，递归式地将序列中的元素合并为一个元素</li>
+<li>combineClosure:规则闭包，要返回如何将元素合并，有两个参数<ul>
+<li>$0 代表累加器，初值等于 initial</li>
+<li>$1 代表遍历数组得到的一个元素</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">var languages &#x3D; [&quot;Swift&quot;, &quot;OC&quot;, &quot;java&quot;]</span><br><span class="line">let r &#x3D; languages.reduce(&quot;_&quot;, &#123;$0 + $1&#125;) &#x2F;&#x2F;等同于</span><br><span class="line">let r &#x3D; languages.reduce(&quot;_&quot;) &#123; (result, next) -&gt; String in</span><br><span class="line">    print(&quot;result: \(result)&quot;)</span><br><span class="line">    print(&quot;next: \(next)&quot;)</span><br><span class="line">    return result + next</span><br><span class="line">&#125;</span><br><span class="line">print(r)</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line">result: _</span><br><span class="line">next: Swift</span><br><span class="line">result: _Swift</span><br><span class="line">next: OC</span><br><span class="line">result: _SwiftOC</span><br><span class="line">next: java</span><br><span class="line">_SwiftOCjava</span><br><span class="line">*&#x2F;</span><br><span class="line"></span><br><span class="line">print([10, 20, 5].reduce(1, &#123; $0 * $1 &#125;) &#x3D;&#x3D; 1000) &#x2F;&#x2F; true</span><br><span class="line">&#x2F;&#x2F; 极简形式 [10, 20, 5].reduce(1, *)</span><br></pre></td></tr></table></figure>
+
+<h3 id="值的注意的问题"><a href="#值的注意的问题" class="headerlink" title="值的注意的问题"></a>值的注意的问题</h3><ul>
+<li>仅传入计算符号 “+” “*” 作为一个 combinator 函数是有效的<ul>
+<li>它仅仅是对 lhs（Left-hand side，等式左侧） 和 rhs（Right-hand side，等式右侧） 做计算处理，最后返回结果值<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[0, 1, 2, 3, 4].reduce(0, +)</span><br><span class="line">[1, 2, 3, 4].reduce(1, *)</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li>性能问题：<br>使用高阶函数之前多考虑实现方案，通常情况下，map 和 filter 所组成的链式结构会引入性能上的问题，因为它们需要多次遍历你的集合才能最终得到结果值，这种操作往往伴随性能损失。<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; 初始序列（即 [0,1,2,3,4]）被重复访问了三次之多</span><br><span class="line">[0, 1, 2, 3, 4].map(&#123; $0 + 3&#125;).filter(&#123; $0 % 2 &#x3D;&#x3D; 0&#125;).reduce(0, combine: +)</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 可用 reduce 完全替换实现，极大提高执行效率：</span><br><span class="line">[0, 1, 2, 3, 4].reduce(0, &#123; (ac, r) in </span><br><span class="line">  if (r + 3) % 2 &#x3D;&#x3D; 0 &#123;</span><br><span class="line">   return ac + r + 3</span><br><span class="line">  &#125; else &#123;</span><br><span class="line">   return ac</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; for-loop 版本</span><br><span class="line">var ux &#x3D; 0</span><br><span class="line">for i in 0...100000 &#123;</span><br><span class="line">    if (i + 3) % 2 &#x3D;&#x3D; 0 &#123;</span><br><span class="line">      ux +&#x3D; (i + 3)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<img src="https://upload-images.jianshu.io/upload_images/861390-7a9545746f8c15e8.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1200" alt="5"></li>
+</ul>
+<h2 id="更多范式"><a href="#更多范式" class="headerlink" title="更多范式"></a>更多范式</h2><ul>
+<li>min：返回列表中的最小项。[1,5,2,9,4].minElement() 方法更胜一筹。</li>
+<li>unique：剔除列表中重复的元素。最好的解决方式是使用集合（Set）</li>
+</ul>
+<h3 id="sort"><a href="#sort" class="headerlink" title="sort"></a>sort</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">let Arr &#x3D; [13, 45, 27, 80, 22, 53]</span><br><span class="line">&#x2F;&#x2F; 完整</span><br><span class="line">let sort1 &#x3D; Arr.sorted &#123; (a: Int, b: Int) -&gt; Bool in</span><br><span class="line">    return a &lt; b</span><br><span class="line">&#125;</span><br><span class="line">&#x2F;&#x2F; 简略</span><br><span class="line">let sort2 &#x3D; Arr.sorted &#123; $0 &lt; $1 &#125;</span><br><span class="line">&#x2F;&#x2F; 极简</span><br><span class="line">let sort3 &#x3D; Arr.sorted(by: &lt;)</span><br></pre></td></tr></table></figure>
+
+<p>参考文档<a href="https://www.jianshu.com/p/93903d6c3815" target="_blank" rel="noopener">Swift5 高阶函数</a></p>
+]]></content>
+      <categories>
+        <category>Swift</category>
+      </categories>
+      <tags>
+        <tag>Swift</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>其它总结文章</title>
     <url>/2020/01/15/%E5%85%B6%E5%AE%83%E6%80%BB%E7%BB%93/</url>
     <content><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
@@ -27,6 +99,20 @@
       </tags>
   </entry>
   <entry>
+    <title>Objective-C文章</title>
+    <url>/2020/01/14/objectiveC/</url>
+    <content><![CDATA[<blockquote>
+<p>objectiveC下第一篇</p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>Objective-C</category>
+      </categories>
+      <tags>
+        <tag>Objective-C</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Swift开篇之述</title>
     <url>/2020/01/14/swift/</url>
     <content><![CDATA[<p>Swift篇主要包含以下tag分类，每篇博客必须至少包含以下分类中的一个</p>
@@ -44,20 +130,6 @@
       </categories>
       <tags>
         <tag>Swift</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Objective-C文章</title>
-    <url>/2020/01/14/objectiveC/</url>
-    <content><![CDATA[<blockquote>
-<p>objectiveC下第一篇</p>
-</blockquote>
-]]></content>
-      <categories>
-        <category>Objective-C</category>
-      </categories>
-      <tags>
-        <tag>Objective-C</tag>
       </tags>
   </entry>
   <entry>
